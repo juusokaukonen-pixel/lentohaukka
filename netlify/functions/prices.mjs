@@ -1,0 +1,58 @@
+// Lentohaukka: hakee halvimmat meno-paluulennot Travelpayouts / Aviasales Data API:sta.
+// Token ja Partner ID luetaan Netlifyn ympäristömuuttujista TP_TOKEN ja TP_MARKER.
+// Kutsu: /api/prices?origins=HEL,TLL&months=2026-12,2027-01
+
+const API = "https://api.travelpayouts.com/aviasales/v3/prices_for_dates";
+
+export default async (req) => {
+  const url = new URL(req.url);
+  const origins = (url.searchParams.get("origins") || "HEL")
+    .split(",").map((s) => s.trim().toUpperCase())
+    .filter((s) => /^[A-Z]{3}$/.test(s)).slice(0, 6);
+  const months = (url.searchParams.get("months") || "")
+    .split(",").map((s) => s.trim())
+    .filter((s) => /^\d{4}-\d{2}$/.test(s)).slice(0, 6);
+
+  const token = Netlify.env.get("TP_TOKEN");
+  const marker = Netlify.env.get("TP_MARKER") || "";
+  if (!token) return Response.json({ error: "TP_TOKEN puuttuu Netlifyn ympäristömuuttujista" }, { status: 500 });
+  if (!origins.length || !months.length) return Response.json({ error: "origins ja months vaaditaan" }, { status: 400 });
+
+  const jobs = [];
+  for (const o of origins) for (const m of months) jobs.push([o, m]);
+
+  const offers = {};
+  const errors = [];
+  await Promise.all(jobs.map(async ([o, m]) => {
+    const qs = new URLSearchParams({
+      origin: o, departure_at: m, one_way: "false", unique: "true",
+      sorting: "price", direct: "false", currency: "eur", limit: "1000", page: "1",
+    });
+    try {
+      const r = await fetch(`${API}?${qs}`, { headers: { "X-Access-Token": token, "Accept-Encoding": "gzip" } });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (!j.success || !Array.isArray(j.data)) throw new Error("ei dataa");
+      offers[`${o}|${m}`] = j.data.map((x) => {
+        let link = x.link ? `https://www.aviasales.com${x.link}` : null;
+        if (link && marker) link += (link.includes("?") ? "&" : "?") + "marker=" + encodeURIComponent(marker);
+        return {
+          d: x.destination, a: x.destination_airport, p: x.price,
+          tr: x.transfers, dur: x.duration_to, dep: x.departure_at, ret: x.return_at,
+          al: x.airline, link,
+        };
+      });
+    } catch (e) {
+      errors.push(`${o}|${m}: ${e.message}`);
+    }
+  }));
+
+  return Response.json({ offers, errors, fetched: new Date().toISOString() }, {
+    headers: {
+      "Cache-Control": "public, max-age=600",
+      "Netlify-CDN-Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+    },
+  });
+};
+
+export const config = { path: "/api/prices" };

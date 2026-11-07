@@ -8,10 +8,10 @@ export default async (req) => {
   const url = new URL(req.url);
   const origins = (url.searchParams.get("origins") || "HEL")
     .split(",").map((s) => s.trim().toUpperCase())
-    .filter((s) => /^[A-Z]{3}$/.test(s)).slice(0, 6);
+    .filter((s) => /^[A-Z]{3}$/.test(s)).slice(0, 3);
   const months = (url.searchParams.get("months") || "")
     .split(",").map((s) => s.trim())
-    .filter((s) => /^\d{4}-\d{2}$/.test(s)).slice(0, 6);
+    .filter((s) => /^\d{4}-\d{2}$/.test(s)).slice(0, 2);
 
   const token = Netlify.env.get("TP_TOKEN");
   const marker = Netlify.env.get("TP_MARKER") || "";
@@ -26,7 +26,7 @@ export default async (req) => {
   await Promise.all(jobs.map(async ([o, m]) => {
     const qs = new URLSearchParams({
       origin: o, departure_at: m, one_way: "false", unique: "true",
-      sorting: "price", direct: "false", currency: "eur", limit: "1000", page: "1",
+      sorting: "price", direct: "false", currency: "eur", limit: "400", page: "1",
     });
     try {
       const r = await fetch(`${API}?${qs}`, { headers: { "X-Access-Token": token, "Accept-Encoding": "gzip" } });

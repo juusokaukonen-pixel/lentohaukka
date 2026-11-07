@@ -330,18 +330,20 @@ async function ensureLive(origins){
   for(const o of origins)for(const [m] of MONTHS){const k=o+"|"+m;if(!LIVE[k]&&!pending.has(k))need.push(k)}
   if(!need.length)return false;
   need.forEach(k=>pending.add(k));
-  const os=[...new Set(need.map(k=>k.split("|")[0]))],ms=[...new Set(need.map(k=>k.split("|")[1]))];
-  try{
-    const r=await fetch(`/api/prices?origins=${os.join(",")}&months=${ms.join(",")}`);
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const j=await r.json();if(!j||!j.offers)throw new Error("tyhjä vastaus");
-    for(const [k,list] of Object.entries(j.offers)){
+  const got=await Promise.all(need.map(async k=>{
+    const [o,m]=k.split("|");
+    try{
+      const r=await fetch(`/api/prices?origins=${o}&months=${m}`);
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      const j=await r.json();const list=j&&j.offers&&j.offers[k];
+      if(!Array.isArray(list))throw new Error("ei dataa");
       const map={};
       for(const x of list){const key=liveKey(x.d,x.a);if(!key)continue;if(!map[key]||x.p<map[key].p)map[key]=x}
-      LIVE[k]=map;
-    }
-    MODE="live";return true;
-  }catch(e){return false}
+      LIVE[k]=map;return true;
+    }catch(e){pending.delete(k);return false}
+  }));
+  if(got.some(Boolean)){MODE="live";return true}
+  return false;
 }
 function liveOffer(o,d,m){const t=LIVE[o+"|"+m];return t?t[d]:undefined}
 const ALL3=[0,1,2],ALL5=[1,2,3,4,5];

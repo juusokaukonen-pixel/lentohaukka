@@ -25,8 +25,8 @@ export default async (req) => {
   const errors = [];
   await Promise.all(jobs.map(async ([o, m]) => {
     const qs = new URLSearchParams({
-      origin: o, departure_at: m, one_way: "false", unique: "true",
-      sorting: "price", direct: "false", currency: "eur", limit: "400", page: "1",
+      origin: o, departure_at: m, one_way: "false", unique: "false",
+      sorting: "price", direct: "false", currency: "eur", limit: "1000", page: "1",
     });
     try {
       const r = await fetch(`${API}?${qs}`, { headers: { "X-Access-Token": token, "Accept-Encoding": "gzip" } });

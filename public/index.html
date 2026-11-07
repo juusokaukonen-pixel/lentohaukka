@@ -155,12 +155,12 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
       <div>
         <label for="maxPrice">Hinta enintään</label>
         <div class="val" id="maxPriceV"></div>
-        <input type="range" id="maxPrice" min="30" max="800" step="10" value="150">
+        <input type="range" id="maxPrice" min="30" max="800" step="10" value="800">
       </div>
       <div>
         <label for="maxKm">Kohde enintään</label>
         <div class="val" id="maxKmV"></div>
-        <input type="range" id="maxKm" min="200" max="10000" step="100" value="3000">
+        <input type="range" id="maxKm" min="200" max="12000" step="100" value="12000">
       </div>
       <div>
         <label for="minKm">Kohde vähintään</label>
@@ -181,6 +181,15 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
         <input type="range" id="radius" min="100" max="600" step="25" value="250">
         <p class="hint" id="nearList"></p>
       </div>
+    </div>
+
+    <div>
+      <span class="lbl">Lähtöajat</span>
+      <div class="chips">
+        <button type="button" class="chip" id="c-time-am" aria-pressed="false">Aamulento menomatkalla<small>lähtö klo 06–11</small></button>
+        <button type="button" class="chip" id="c-time-pm" aria-pressed="false">Iltapaluu<small>lähtö klo 15–23</small></button>
+      </div>
+      <p class="hint">Vapaaehtoinen. Kun mitään ei ole valittu, lähtöaika ei rajaa hakua. Ajat ovat lähtökentän paikallista aikaa.</p>
     </div>
 
     <div class="filters">
@@ -348,7 +357,8 @@ async function ensureLive(origins){
       const j=await r.json();const list=j&&j.offers&&j.offers[k];
       if(!Array.isArray(list))throw new Error("ei dataa");
       const map={};
-      for(const x of list){const key=liveKey(x.d,x.a);if(!key)continue;if(!map[key]||x.p<map[key].p)map[key]=x}
+      for(const x of list){const key=liveKey(x.d,x.a);if(!key)continue;(map[key]=map[key]||[]).push(x)}
+      for(const k2 in map)map[k2]=map[k2].sort((a,b)=>a.p-b.p).slice(0,25);
       LIVE[k]=map;return true;
     }catch(e){pending.delete(k);return false}
   }));
@@ -374,9 +384,16 @@ async function loadGoogle(){
 }
 function gOffer(d,m){const t=GOOGLE.months[m];return t?t[d]:undefined}
 function gLink(o,d,x){const q=`Flights to ${x.code||d} from ${o}`+(x.start?` on ${x.start}`:"")+(x.end?` through ${x.end}`:"");return "https://www.google.com/travel/flights?hl=fi&curr=EUR&q="+encodeURIComponent(q)}
+const clockMin=t=>t&&t.length>=16?(+t.slice(11,13))*60+(+t.slice(14,16)):null;
+function clockOk(dep,ret,q){
+  if(q.amOut){const v=clockMin(dep);if(v==null||v<6*60||v>11*60)return false}
+  if(q.pmRet){const v=clockMin(ret);if(v==null||v<15*60||v>23*60)return false}
+  return true;
+}
 function liveOffer(o,d,m){const t=LIVE[o+"|"+m];return t?t[d]:undefined}
 const ALL3=[0,1,2],ALL5=[1,2,3,4,5];
-function norm(q){return {pl:ALL5,rain:ALL3,day:ALL3,night:ALL3,...q}}
+const PRICE_MAX=800,KM_MAX=12000;
+function norm(q){return {pl:ALL5,rain:ALL3,day:ALL3,night:ALL3,amOut:false,pmRet:false,maxDirect:0,maxStop:0,minKm:0,...q}}
 function climOk(d,mi,q){const c=CLIM[d][mi];return q.rain.includes(rainCat(c[2]))&&q.day.includes(dayCat(c[0]))&&q.night.includes(nightCat(c[1]))}
 function best(o,d,q){
   let b=null;
@@ -384,20 +401,25 @@ function best(o,d,q){
   MONTHS.forEach(([m],mi)=>{
     if(q.month!=="all"&&q.month!==m)return;
     if(!climOk(d,mi,q))return;
-    let r,t;
     if(MODE==="live"){
-      const x=liveOffer(o,d,m);if(!x)return;
-      const hrs=x.dur?x.dur/60:null;
-      t={direct:x.tr===0?hrs:null,stop:x.tr<=1&&hrs!=null?hrs:Infinity,dur:hrs};
-      r={p:Math.round(x.p),deal:false,dist,live:x};
-    }else{t=times(o,d,dist);r=price(o,d,m)}
-    if(!timeOk(t,q))return;
-    if(!b||r.p<b.p)b={...r,m,mi,t};
+      for(const x of (liveOffer(o,d,m)||[])){
+        const hrs=x.dur?x.dur/60:null;
+        const t={direct:x.tr===0?hrs:null,stop:x.tr<=1&&hrs!=null?hrs:Infinity,dur:hrs};
+        if(!timeOk(t,q)||!clockOk(x.dep,x.ret,q))continue;
+        if(!b||x.p<b.p)b={p:Math.round(x.p),deal:false,dist,live:x,m,mi,t};
+        break;
+      }
+    }else{
+      const t=times(o,d,dist),r=price(o,d,m);
+      const dh=`T${String(5+Math.floor(h(o+d+m+"dh")*18)).padStart(2,"0")}:${h(o+d+m+"dm")<.5?"10":"40"}`,rh=`T${String(5+Math.floor(h(o+d+m+"rh")*18)).padStart(2,"0")}:${h(o+d+m+"rm")<.5?"05":"35"}`;
+      if(!timeOk(t,q)||!clockOk("0000-00-00"+dh,"0000-00-00"+rh,q))return;
+      if(!b||r.p<b.p)b={...r,m,mi,t};
+    }
   });
   return b;
 }
 const $=id=>document.getElementById(id);
-const S={origin:"HEL",month:"all",maxPrice:150,maxKm:3000,minKm:0,near:false,radius:250,pl:[1,2,3,4,5],rain:[0,1,2],day:[0,1,2],night:[0,1,2],maxDirect:0,maxStop:0};
+const S={origin:"HEL",month:"all",maxPrice:800,maxKm:12000,minKm:0,near:false,radius:250,pl:[1,2,3,4,5],rain:[0,1,2],day:[0,1,2],night:[0,1,2],maxDirect:0,maxStop:0,amOut:false,pmRet:false};
 
 $("origin").innerHTML=Object.entries(ORIGINS).map(([c,v])=>`<option value="${c}">${v[0]} (${c})</option>`).join("");
 $("month").innerHTML=`<option value="all">Joustava: halvin kuukausi</option>`+MONTHS.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
@@ -415,10 +437,10 @@ function search(q){
     if(os.includes(d))continue;
     if(!q.pl.includes(plLevel(PLI[DEST[d][1]])))continue;
     const [ ,ha,ho]=ORIGINS[q.origin];const dKm=km(ha,ho,DEST[d][2],DEST[d][3]);
-    if(dKm<q.minKm||dKm>q.maxKm)continue;
+    if(dKm<(q.minKm||0)||(q.maxKm<KM_MAX&&dKm>q.maxKm))continue;
     let b=null;
     for(const o of os){if(o===d)continue;const r=best(o,d,q);if(r&&(!b||r.p<b.p))b={...r,o}}
-    if(b&&b.p<=q.maxPrice)out.push({d,...b,homeKm:dKm});
+    if(b&&(q.maxPrice>=PRICE_MAX||b.p<=q.maxPrice))out.push({d,...b,homeKm:dKm});
   }
   return out.sort((a,b)=>a.p-b.p);
 }
@@ -436,7 +458,8 @@ document.querySelectorAll(".chips[data-k]").forEach(box=>{
     const arr=S[k];S[k]=arr.includes(v)?arr.filter(x=>x!==v):[...arr,v].sort();
     if(!S[k].length)S[k]=CHIPS[k].map(c=>c[0]);render()});
 });
-const dfmtISO=t=>{if(!t)return"";const d=new Date(t);return isNaN(d)?"":`${d.getDate()}.${d.getMonth()+1}.`};
+const dfmtISO=t=>t&&t.length>=10?`${+t.slice(8,10)}.${+t.slice(5,7)}.`:"";
+const tISO=t=>t&&t.length>=16?` klo ${t.slice(11,13)}.${t.slice(14,16)}`:"";
 const plDots=n=>`<span class="pl" title="Hintataso ${n}/5">${"€".repeat(n)}<i>${"€".repeat(5-n)}</i></span>`;
 function setMode(){
   const el=document.querySelector(".demo");
@@ -448,10 +471,11 @@ function render(){
   ensureLive(originsInUse()).then(ch=>{if(ch){render();renderWatches()}});
   loadGoogle().then(ch=>{if(ch)render()});
   for(const k in CHIPS)for(const [v] of CHIPS[k])$(`c-${k}-${v}`).setAttribute("aria-pressed",S[k].includes(v));
-  $("maxPriceV").textContent=`${S.maxPrice} €`;
+  $("maxPriceV").textContent=S.maxPrice>=PRICE_MAX?"ei rajaa":`${S.maxPrice} €`;
   $("maxDirectV").textContent=S.maxDirect?hm(S.maxDirect):"ei rajaa";
   $("maxStopV").textContent=S.maxStop?hm(S.maxStop):"ei rajaa";
-  $("maxKmV").textContent=`${fmt(S.maxKm)} km`;
+  $("maxKmV").textContent=S.maxKm>=KM_MAX?"ei rajaa":`${fmt(S.maxKm)} km`;
+  $("c-time-am").setAttribute("aria-pressed",!!S.amOut);$("c-time-pm").setAttribute("aria-pressed",!!S.pmRet);
   $("minKmV").textContent=S.minKm?`${fmt(S.minKm)} km`:"ei rajaa";
   $("radiusV").textContent=`${S.radius} km`;
   $("depOne").setAttribute("aria-pressed",!S.near);$("depNear").setAttribute("aria-pressed",S.near);
@@ -471,12 +495,18 @@ function render(){
     const D=DEST[r.d],c=CLIM[r.d][r.mi];
     return `<div class="ticket"><div class="route">${r.o} <span>→</span> ${r.d}</div>
       <div class="city"><strong>${D[0]}${r.deal?'<span class="tag">Tarjous</span>':""}</strong><small>${D[1]} · ${fmt(r.dist)} km · ${monthName(r.m)}</small>
-      <div class="facts">${plDots(plLevel(PLI[D[1]]))}<span>päivä ${c[0]} °C</span><span>yö ${c[1]} °C</span><span>sade ${c[2]} mm</span></div><div class="facts">${r.live?`<span>${r.live.tr===0?"suora":r.live.tr===1?"1 välilasku":r.live.tr+" välilaskua"}${r.t.dur?" · menomatka "+hm(r.t.dur):""}</span><span>${dfmtISO(r.live.dep)}${r.live.ret?" – "+dfmtISO(r.live.ret):""}</span>`:`<span>${r.t.direct!=null?"suora "+hm(r.t.direct):"ei suoraa lentoa"}</span><span>1 välilasku ${hm(r.t.stop)}</span>`}</div>${(()=>{const g=r.o==="HEL"?gOffer(r.d,r.m):null;return g?`<div class="gp"><span class="gtag">Google Flights</span> <b>${Math.round(g.price)} €</b>${g.start?` · ${dfmtISO(g.start)}${g.end?"–"+dfmtISO(g.end):""}`:""}${g.stops!=null?` · ${g.stops===0?"suora":g.stops+" vaihto"}`:""} · <a href="${esc(gLink(r.o,r.d,g))}" target="_blank" rel="noopener">avaa Googlessa</a></div>`:""})()}${r.live&&r.live.link?`<a class="book" href="${esc(r.live.link)}" target="_blank" rel="noopener">Katso lento ja varaa →</a>`:""}${(()=>{const hs=holsFor(HOL[D[1]],r.m);return hs.length?`<div class="hols">${hs.map(h=>`<span class="hol${/suljettu/.test(h[2])?" warn":""}">${h[2]} ${hspan(h)}</span>`).join("")}</div>`:""})()}</div>
+      <div class="facts">${plDots(plLevel(PLI[D[1]]))}<span>päivä ${c[0]} °C</span><span>yö ${c[1]} °C</span><span>sade ${c[2]} mm</span></div><div class="facts">${r.live?`<span>${r.live.tr===0?"suora":r.live.tr===1?"1 välilasku":r.live.tr+" välilaskua"}${r.t.dur?" · menomatka "+hm(r.t.dur):""}</span><span>meno ${dfmtISO(r.live.dep)}${tISO(r.live.dep)}</span>${r.live.ret?`<span>paluu ${dfmtISO(r.live.ret)}${tISO(r.live.ret)}</span>`:""}`:`<span>${r.t.direct!=null?"suora "+hm(r.t.direct):"ei suoraa lentoa"}</span><span>1 välilasku ${hm(r.t.stop)}</span>`}</div>${(()=>{const g=r.o==="HEL"&&!S.amOut&&!S.pmRet?gOffer(r.d,r.m):null;return g?`<div class="gp"><span class="gtag">Google Flights</span> <b>${Math.round(g.price)} €</b>${g.start?` · ${dfmtISO(g.start)}${g.end?"–"+dfmtISO(g.end):""}`:""}${g.stops!=null?` · ${g.stops===0?"suora":g.stops+" vaihto"}`:""} · <a href="${esc(gLink(r.o,r.d,g))}" target="_blank" rel="noopener">avaa Googlessa</a></div>`:""})()}${r.live&&r.live.link?`<a class="book" href="${esc(r.live.link)}" target="_blank" rel="noopener">Katso lento ja varaa →</a>`:""}${(()=>{const hs=holsFor(HOL[D[1]],r.m);return hs.length?`<div class="hols">${hs.map(h=>`<span class="hol${/suljettu/.test(h[2])?" warn":""}">${h[2]} ${hspan(h)}</span>`).join("")}</div>`:""})()}</div>
       <div class="price">${r.p} €<small>meno-paluu</small></div></div>`}).join("")
     :`<div class="empty">Ei kohteita näillä rajoilla. Nosta hintarajaa tai laajenna kilometrirajausta.</div>`;
 }
 function describe(s){
-  const parts=[`${ORIGINS[s.origin][0]}${s.near?` + ${s.radius} km`:""}`,`alle ${s.maxPrice} €`,s.minKm?`${fmt(s.minKm)}–${fmt(s.maxKm)} km`:`alle ${fmt(s.maxKm)} km`,s.month==="all"?"joustava aika":monthName(s.month).toLowerCase()];
+  const noP=s.maxPrice>=PRICE_MAX,noK=s.maxKm>=KM_MAX;
+  const parts=[`${ORIGINS[s.origin][0]}${s.near?` + ${s.radius} km`:""}`];
+  if(!noP)parts.push(`alle ${s.maxPrice} €`);
+  if(s.minKm&&!noK)parts.push(`${fmt(s.minKm)}–${fmt(s.maxKm)} km`);else if(s.minKm)parts.push(`yli ${fmt(s.minKm)} km`);else if(!noK)parts.push(`alle ${fmt(s.maxKm)} km`);
+  parts.push(s.month==="all"?"joustava aika":monthName(s.month).toLowerCase());
+  if(s.amOut)parts.push("meno klo 06–11");
+  if(s.pmRet)parts.push("paluu klo 15–23");
   const n=norm(s),lab=(k,arr)=>arr.length<CHIPS[k].length?arr.map(v=>CHIPS[k].find(c=>c[0]===v)[1].toLowerCase()).join("/"):null;
   if(s.maxDirect)parts.push("suora ≤ "+hm(s.maxDirect));
   if(s.maxStop)parts.push("1 välilasku ≤ "+hm(s.maxStop));
@@ -540,7 +570,7 @@ let A=null;
 function chipRow(el,labels,sel,onPick){el.innerHTML=labels.map((l,i)=>`<button type="button" class="chip" aria-pressed="${i===sel}" data-i="${i}">${l}</button>`).join("");el.onclick=e=>{const b=e.target.closest(".chip");if(!b)return;onPick(+b.dataset.i)}}
 function drawAlertChips(){chipRow($("aChan"),CHAN,A.chan,i=>{A.chan=i;drawAlertChips()});chipRow($("aFreq"),FREQ,A.freq,i=>{A.freq=i;drawAlertChips()})}
 function openAlert(w){
-  A=w?{...w}:{id:null,s:JSON.parse(JSON.stringify(S)),name:"",alert:Math.round(S.maxPrice*0.8),drop:0,chan:0,freq:1,quiet:true,onlyNew:true};
+  A=w?{...w}:{id:null,s:JSON.parse(JSON.stringify(S)),name:"",alert:S.maxPrice>=PRICE_MAX?200:Math.round(S.maxPrice*0.8),drop:0,chan:0,freq:1,quiet:true,onlyNew:true};
   $("alertQ").textContent="Haku: "+describe(A.s);
   $("aName").value=A.name||"";$("aPrice").value=A.alert;$("aDrop").value=A.drop||"";
   $("aQuiet").checked=!!A.quiet;$("aNew").checked=!!A.onlyNew;
@@ -567,6 +597,8 @@ try{new IntersectionObserver(es=>{const vis=es.some(e=>e.isIntersecting);$("live
 for(const k of ["maxPrice","maxKm","minKm","radius","maxDirect","maxStop"])$(k).addEventListener("input",e=>{S[k]=+e.target.value;if(k==="minKm"&&S.minKm>S.maxKm){S.maxKm=S.minKm;$("maxKm").value=S.maxKm}if(k==="maxKm"&&S.maxKm<S.minKm){S.minKm=S.maxKm;$("minKm").value=S.minKm}render()});
 $("origin").addEventListener("change",e=>{S.origin=e.target.value;render()});
 $("month").addEventListener("change",e=>{S.month=e.target.value;render()});
+$("c-time-am").addEventListener("click",()=>{S.amOut=!S.amOut;render()});
+$("c-time-pm").addEventListener("click",()=>{S.pmRet=!S.pmRet;render()});
 $("depOne").addEventListener("click",()=>{S.near=false;render()});
 $("depNear").addEventListener("click",()=>{S.near=true;render()});
 /* Evästeet: Travelpayouts Drive ladataan vain suostumuksella */

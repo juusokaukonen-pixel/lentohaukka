@@ -107,6 +107,10 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
 .gp b{color:var(--ink)}
 .gp a{color:var(--ink)}
 .gtag{font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;border:1px solid var(--line);color:var(--ink)}
+.leafchip{display:inline-flex;align-items:center;gap:8px;text-align:left}
+.leaf{width:22px;height:22px;flex:none;color:#3f8f4a}
+.leafchip[aria-pressed="true"]{background:#2f7a3b;border-color:#2f7a3b;color:#fff}
+.leafchip[aria-pressed="true"] .leaf{color:#fff}
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:6px;font-weight:600;font-size:.9rem}
 @media (max-width:480px){
   .ticket{grid-template-columns:1fr auto}
@@ -190,6 +194,13 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
         <button type="button" class="chip" id="c-time-pm" aria-pressed="false">Iltapaluu<small>lähtö klo 15–23</small></button>
       </div>
       <p class="hint">Vapaaehtoinen. Kun mitään ei ole valittu, lähtöaika ei rajaa hakua. Ajat ovat lähtökentän paikallista aikaa.</p>
+    </div>
+
+    <div>
+      <span class="lbl">Kohdemaa</span>
+      <div class="chips">
+        <button type="button" class="chip leafchip" id="c-canna" aria-pressed="false"><svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><ellipse cx="12" cy="14.9" rx="1.15" ry="2.1" transform="rotate(-78 12 17)"/><ellipse cx="12" cy="13.8" rx="1.45" ry="3.2" transform="rotate(-52 12 17)"/><ellipse cx="12" cy="12.8" rx="1.45" ry="4.2" transform="rotate(-26 12 17)"/><ellipse cx="12" cy="12.2" rx="1.45" ry="4.8" transform="rotate(0 12 17)"/><ellipse cx="12" cy="12.8" rx="1.45" ry="4.2" transform="rotate(26 12 17)"/><ellipse cx="12" cy="13.8" rx="1.45" ry="3.2" transform="rotate(52 12 17)"/><ellipse cx="12" cy="14.9" rx="1.15" ry="2.1" transform="rotate(78 12 17)"/><rect x="11.4" y="16.5" width="1.2" height="6" rx=".6"/></g></svg>Kannabismyönteinen<small>laillista tai pienistä määristä ei rangaista</small></button>
+      </div>
     </div>
 
     <div class="filters">
@@ -384,6 +395,10 @@ async function loadGoogle(){
 }
 function gOffer(d,m){const t=GOOGLE.months[m];return t?t[d]:undefined}
 function gLink(o,d,x){const q=`Flights to ${x.code||d} from ${o}`+(x.start?` on ${x.start}`:"")+(x.end?` through ${x.end}`:"");return "https://www.google.com/travel/flights?hl=fi&curr=EUR&q="+encodeURIComponent(q)}
+/* Kannabis: laillinen tai pienten määrien hallussapidosta ei rangaista (tilanne 11/2026) */
+const CANNA_C=new Set(["Saksa","Tšekki","Alankomaat","Sveitsi"]);
+const CANNA_D=new Set(["JFK"]); /* New Yorkin osavaltio */
+const cannaOk=d=>CANNA_C.has(DEST[d][1])||CANNA_D.has(d);
 const clockMin=t=>t&&t.length>=16?(+t.slice(11,13))*60+(+t.slice(14,16)):null;
 function clockOk(dep,ret,q){
   if(q.amOut){const v=clockMin(dep);if(v==null||v<6*60||v>11*60)return false}
@@ -393,7 +408,7 @@ function clockOk(dep,ret,q){
 function liveOffer(o,d,m){const t=LIVE[o+"|"+m];return t?t[d]:undefined}
 const ALL3=[0,1,2],ALL5=[1,2,3,4,5];
 const PRICE_MAX=800,KM_MAX=12000;
-function norm(q){return {pl:ALL5,rain:ALL3,day:ALL3,night:ALL3,amOut:false,pmRet:false,maxDirect:0,maxStop:0,minKm:0,...q}}
+function norm(q){return {pl:ALL5,rain:ALL3,day:ALL3,night:ALL3,amOut:false,pmRet:false,canna:false,maxDirect:0,maxStop:0,minKm:0,...q}}
 function climOk(d,mi,q){const c=CLIM[d][mi];return q.rain.includes(rainCat(c[2]))&&q.day.includes(dayCat(c[0]))&&q.night.includes(nightCat(c[1]))}
 function best(o,d,q){
   let b=null;
@@ -419,7 +434,7 @@ function best(o,d,q){
   return b;
 }
 const $=id=>document.getElementById(id);
-const S={origin:"HEL",month:"all",maxPrice:800,maxKm:12000,minKm:0,near:false,radius:250,pl:[1,2,3,4,5],rain:[0,1,2],day:[0,1,2],night:[0,1,2],maxDirect:0,maxStop:0,amOut:false,pmRet:false};
+const S={origin:"HEL",month:"all",maxPrice:800,maxKm:12000,minKm:0,near:false,radius:250,pl:[1,2,3,4,5],rain:[0,1,2],day:[0,1,2],night:[0,1,2],maxDirect:0,maxStop:0,amOut:false,pmRet:false,canna:false};
 
 $("origin").innerHTML=Object.entries(ORIGINS).map(([c,v])=>`<option value="${c}">${v[0]} (${c})</option>`).join("");
 $("month").innerHTML=`<option value="all">Joustava: halvin kuukausi</option>`+MONTHS.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
@@ -436,6 +451,7 @@ function search(q){
   for(const d of Object.keys(DEST)){
     if(os.includes(d))continue;
     if(!q.pl.includes(plLevel(PLI[DEST[d][1]])))continue;
+    if(q.canna&&!cannaOk(d))continue;
     const [ ,ha,ho]=ORIGINS[q.origin];const dKm=km(ha,ho,DEST[d][2],DEST[d][3]);
     if(dKm<(q.minKm||0)||(q.maxKm<KM_MAX&&dKm>q.maxKm))continue;
     let b=null;
@@ -475,7 +491,7 @@ function render(){
   $("maxDirectV").textContent=S.maxDirect?hm(S.maxDirect):"ei rajaa";
   $("maxStopV").textContent=S.maxStop?hm(S.maxStop):"ei rajaa";
   $("maxKmV").textContent=S.maxKm>=KM_MAX?"ei rajaa":`${fmt(S.maxKm)} km`;
-  $("c-time-am").setAttribute("aria-pressed",!!S.amOut);$("c-time-pm").setAttribute("aria-pressed",!!S.pmRet);
+  $("c-canna").setAttribute("aria-pressed",!!S.canna);$("c-time-am").setAttribute("aria-pressed",!!S.amOut);$("c-time-pm").setAttribute("aria-pressed",!!S.pmRet);
   $("minKmV").textContent=S.minKm?`${fmt(S.minKm)} km`:"ei rajaa";
   $("radiusV").textContent=`${S.radius} km`;
   $("depOne").setAttribute("aria-pressed",!S.near);$("depNear").setAttribute("aria-pressed",S.near);
@@ -507,6 +523,7 @@ function describe(s){
   parts.push(s.month==="all"?"joustava aika":monthName(s.month).toLowerCase());
   if(s.amOut)parts.push("meno klo 06–11");
   if(s.pmRet)parts.push("paluu klo 15–23");
+  if(s.canna)parts.push("kannabismyönteinen");
   const n=norm(s),lab=(k,arr)=>arr.length<CHIPS[k].length?arr.map(v=>CHIPS[k].find(c=>c[0]===v)[1].toLowerCase()).join("/"):null;
   if(s.maxDirect)parts.push("suora ≤ "+hm(s.maxDirect));
   if(s.maxStop)parts.push("1 välilasku ≤ "+hm(s.maxStop));
@@ -597,6 +614,7 @@ try{new IntersectionObserver(es=>{const vis=es.some(e=>e.isIntersecting);$("live
 for(const k of ["maxPrice","maxKm","minKm","radius","maxDirect","maxStop"])$(k).addEventListener("input",e=>{S[k]=+e.target.value;if(k==="minKm"&&S.minKm>S.maxKm){S.maxKm=S.minKm;$("maxKm").value=S.maxKm}if(k==="maxKm"&&S.maxKm<S.minKm){S.minKm=S.maxKm;$("minKm").value=S.minKm}render()});
 $("origin").addEventListener("change",e=>{S.origin=e.target.value;render()});
 $("month").addEventListener("change",e=>{S.month=e.target.value;render()});
+$("c-canna").addEventListener("click",()=>{S.canna=!S.canna;render()});
 $("c-time-am").addEventListener("click",()=>{S.amOut=!S.amOut;render()});
 $("c-time-pm").addEventListener("click",()=>{S.pmRet=!S.pmRet;render()});
 $("depOne").addEventListener("click",()=>{S.near=false;render()});

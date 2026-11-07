@@ -3,6 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13202B">
+<meta name="description" content="Halvat lennot hinnan, etäisyyden, sään ja lentoajan mukaan.">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lentohaukka">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Lentohaukka</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -246,7 +255,7 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
   <h2>Seuratut haut</h2>
   <div class="list" id="watches"></div>
 </div>
-<footer class="foot"><span>Lentohaukka · hinnat Aviasales / Travelpayouts</span><button class="x" id="cookieOpen" type="button">Evästeasetukset</button></footer>
+<footer class="foot"><span>Lentohaukka · hinnat Aviasales / Travelpayouts</span><span><button class="x" id="installBtn" type="button" hidden>Asenna puhelimeen</button> <button class="x" id="cookieOpen" type="button">Evästeasetukset</button></span></footer>
 <div class="cookie" id="cookie" role="dialog" aria-labelledby="cookieT" hidden>
   <div class="cookie-in">
     <strong id="cookieT">Evästeet</strong>
@@ -396,7 +405,7 @@ async function loadGoogle(){
 function gOffer(d,m){const t=GOOGLE.months[m];return t?t[d]:undefined}
 function gLink(o,d,x){const q=`Flights to ${x.code||d} from ${o}`+(x.start?` on ${x.start}`:"")+(x.end?` through ${x.end}`:"");return "https://www.google.com/travel/flights?hl=fi&curr=EUR&q="+encodeURIComponent(q)}
 /* Kannabis: laillinen tai pienten määrien hallussapidosta ei rangaista (tilanne 11/2026) */
-const CANNA_C=new Set(["Saksa","Tšekki","Alankomaat","Sveitsi"]);
+const CANNA_C=new Set(["Saksa","Tšekki","Alankomaat","Sveitsi","Espanja","Portugali"]); /* Espanja ja Portugali: ei rikosoikeudellista rangaistusta */
 const CANNA_D=new Set(["JFK"]); /* New Yorkin osavaltio */
 const cannaOk=d=>CANNA_C.has(DEST[d][1])||CANNA_D.has(d);
 const clockMin=t=>t&&t.length>=16?(+t.slice(11,13))*60+(+t.slice(14,16)):null;
@@ -637,5 +646,16 @@ render();renderWatches();
 })();
 </script>
 
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{})})}
+(function(){
+  let ev=null;const b=document.getElementById("installBtn");if(!b)return;
+  const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+  if(standalone)return;
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();ev=e;b.hidden=false});
+  b.addEventListener("click",async()=>{if(!ev)return;ev.prompt();await ev.userChoice.catch(()=>{});ev=null;b.hidden=true});
+  window.addEventListener("appinstalled",()=>{b.hidden=true});
+})();
+</script>
 </body>
 </html>

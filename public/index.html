@@ -103,6 +103,10 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
 .cookie-in p{margin:0;font-size:.88rem;line-height:1.5;color:var(--muted)}
 .cookie-btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
 .cookie-btns .btn{flex:1 1 180px}
+.gp{grid-column:1/-1;font-size:.82rem;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.gp b{color:var(--ink)}
+.gp a{color:var(--ink)}
+.gtag{font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;border:1px solid var(--line);color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:6px;font-weight:600;font-size:.9rem}
 @media (max-width:480px){
   .ticket{grid-template-columns:1fr auto}
@@ -351,6 +355,25 @@ async function ensureLive(origins){
   if(got.some(Boolean)){MODE="live";return true}
   return false;
 }
+/* Google Flights -hinnat (päivittäin, Helsingistä) */
+const G_ALIAS={LHR:"LGW",STN:"LGW",LTN:"LGW",LCY:"LGW",ORY:"CDG",BVA:"CDG",CIA:"FCO",BGY:"MXP",LIN:"MXP",EWR:"JFK",LGA:"JFK",HND:"NRT",BMA:"ARN",NYO:"ARN",TRF:"OSL",SXF:"BER",TXL:"BER",CRL:"BRU",GRO:"BCN",REU:"BCN",SAW:"IST",SAB:"IST",DWC:"DXB",DMK:"BKK",XRY:"AGP",TFN:"TFS",FMM:"MUC",VDA:"VIE",WMI:"WAW",BUS:"BUD"};
+let GOOGLE={updated:null,months:{}},gLoaded=false;
+async function loadGoogle(){
+  if(gLoaded)return false;gLoaded=true;
+  try{
+    const r=await fetch("/api/google");if(!r.ok)return false;const j=await r.json();
+    if(!j||!j.months)return false;
+    const months={};
+    for(const [ym,list] of Object.entries(j.months)){
+      const map={};
+      for(const x of list){const k=DEST[x.code]?x.code:G_ALIAS[x.code];if(!k||!DEST[k])continue;if(!map[k]||x.price<map[k].price)map[k]=x}
+      months[ym]=map;
+    }
+    GOOGLE={updated:j.updated,months};return Object.keys(months).length>0;
+  }catch(e){return false}
+}
+function gOffer(d,m){const t=GOOGLE.months[m];return t?t[d]:undefined}
+function gLink(o,d,x){const q=`Flights to ${x.code||d} from ${o}`+(x.start?` on ${x.start}`:"")+(x.end?` through ${x.end}`:"");return "https://www.google.com/travel/flights?hl=fi&curr=EUR&q="+encodeURIComponent(q)}
 function liveOffer(o,d,m){const t=LIVE[o+"|"+m];return t?t[d]:undefined}
 const ALL3=[0,1,2],ALL5=[1,2,3,4,5];
 function norm(q){return {pl:ALL5,rain:ALL3,day:ALL3,night:ALL3,...q}}
@@ -423,6 +446,7 @@ function setMode(){
 function render(){
   setMode();
   ensureLive(originsInUse()).then(ch=>{if(ch){render();renderWatches()}});
+  loadGoogle().then(ch=>{if(ch)render()});
   for(const k in CHIPS)for(const [v] of CHIPS[k])$(`c-${k}-${v}`).setAttribute("aria-pressed",S[k].includes(v));
   $("maxPriceV").textContent=`${S.maxPrice} €`;
   $("maxDirectV").textContent=S.maxDirect?hm(S.maxDirect):"ei rajaa";
@@ -437,7 +461,7 @@ function render(){
   const q={...S,origins:os};
   const res=search(q);
   $("summary").textContent=describe(S);
-  $("board").innerHTML=`<span>LÄHTÖ <b>${os.join(" / ")}</b></span><span>OSUMIA <b>${res.length}</b></span><span>HALVIN <b>${res[0]?res[0].p+" €":"–"}</b></span>`;
+  $("board").innerHTML=`<span>LÄHTÖ <b>${os.join(" / ")}</b></span><span>OSUMIA <b>${res.length}</b></span><span>HALVIN <b>${res[0]?res[0].p+" €":"–"}</b></span>${GOOGLE.updated?`<span>GOOGLE <b>${(d=>`${d.getDate()}.${d.getMonth()+1}. klo ${String(d.getHours()).padStart(2,"0")}.${String(d.getMinutes()).padStart(2,"0")}`)(new Date(GOOGLE.updated))}</b></span>`:""}`;
   $("liveTxt").innerHTML=res.length?`<b>${res.length}</b> ${res.length===1?"kohde":"kohdetta"} · halvin <b>${res[0].p} €</b> ${DEST[res[0].d][0]}`:"Ei osumia näillä rajoilla";
   const fiM=S.month!=="all"?S.month:(res[0]&&res[0].m);
   const fh=fiM?holsFor(FI_HOL,fiM):[];
@@ -447,7 +471,7 @@ function render(){
     const D=DEST[r.d],c=CLIM[r.d][r.mi];
     return `<div class="ticket"><div class="route">${r.o} <span>→</span> ${r.d}</div>
       <div class="city"><strong>${D[0]}${r.deal?'<span class="tag">Tarjous</span>':""}</strong><small>${D[1]} · ${fmt(r.dist)} km · ${monthName(r.m)}</small>
-      <div class="facts">${plDots(plLevel(PLI[D[1]]))}<span>päivä ${c[0]} °C</span><span>yö ${c[1]} °C</span><span>sade ${c[2]} mm</span></div><div class="facts">${r.live?`<span>${r.live.tr===0?"suora":r.live.tr===1?"1 välilasku":r.live.tr+" välilaskua"}${r.t.dur?" · menomatka "+hm(r.t.dur):""}</span><span>${dfmtISO(r.live.dep)}${r.live.ret?" – "+dfmtISO(r.live.ret):""}</span>`:`<span>${r.t.direct!=null?"suora "+hm(r.t.direct):"ei suoraa lentoa"}</span><span>1 välilasku ${hm(r.t.stop)}</span>`}</div>${r.live&&r.live.link?`<a class="book" href="${esc(r.live.link)}" target="_blank" rel="noopener">Katso lento ja varaa →</a>`:""}${(()=>{const hs=holsFor(HOL[D[1]],r.m);return hs.length?`<div class="hols">${hs.map(h=>`<span class="hol${/suljettu/.test(h[2])?" warn":""}">${h[2]} ${hspan(h)}</span>`).join("")}</div>`:""})()}</div>
+      <div class="facts">${plDots(plLevel(PLI[D[1]]))}<span>päivä ${c[0]} °C</span><span>yö ${c[1]} °C</span><span>sade ${c[2]} mm</span></div><div class="facts">${r.live?`<span>${r.live.tr===0?"suora":r.live.tr===1?"1 välilasku":r.live.tr+" välilaskua"}${r.t.dur?" · menomatka "+hm(r.t.dur):""}</span><span>${dfmtISO(r.live.dep)}${r.live.ret?" – "+dfmtISO(r.live.ret):""}</span>`:`<span>${r.t.direct!=null?"suora "+hm(r.t.direct):"ei suoraa lentoa"}</span><span>1 välilasku ${hm(r.t.stop)}</span>`}</div>${(()=>{const g=r.o==="HEL"?gOffer(r.d,r.m):null;return g?`<div class="gp"><span class="gtag">Google Flights</span> <b>${Math.round(g.price)} €</b>${g.start?` · ${dfmtISO(g.start)}${g.end?"–"+dfmtISO(g.end):""}`:""}${g.stops!=null?` · ${g.stops===0?"suora":g.stops+" vaihto"}`:""} · <a href="${esc(gLink(r.o,r.d,g))}" target="_blank" rel="noopener">avaa Googlessa</a></div>`:""})()}${r.live&&r.live.link?`<a class="book" href="${esc(r.live.link)}" target="_blank" rel="noopener">Katso lento ja varaa →</a>`:""}${(()=>{const hs=holsFor(HOL[D[1]],r.m);return hs.length?`<div class="hols">${hs.map(h=>`<span class="hol${/suljettu/.test(h[2])?" warn":""}">${h[2]} ${hspan(h)}</span>`).join("")}</div>`:""})()}</div>
       <div class="price">${r.p} €<small>meno-paluu</small></div></div>`}).join("")
     :`<div class="empty">Ei kohteita näillä rajoilla. Nosta hintarajaa tai laajenna kilometrirajausta.</div>`;
 }

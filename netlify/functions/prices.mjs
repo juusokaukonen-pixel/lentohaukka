@@ -13,6 +13,7 @@ export default async (req) => {
     .split(",").map((s) => s.trim())
     .filter((s) => /^\d{4}-\d{2}$/.test(s)).slice(0, 2);
 
+  const oneWay = url.searchParams.get("trip") === "ow";
   const token = Netlify.env.get("TP_TOKEN");
   const marker = Netlify.env.get("TP_MARKER") || "";
   if (!token) return Response.json({ error: "TP_TOKEN puuttuu Netlifyn ympäristömuuttujista" }, { status: 500 });
@@ -25,7 +26,7 @@ export default async (req) => {
   const errors = [];
   await Promise.all(jobs.map(async ([o, m]) => {
     const qs = new URLSearchParams({
-      origin: o, departure_at: m, one_way: "false", unique: "false",
+      origin: o, departure_at: m, one_way: oneWay ? "true" : "false", unique: "false",
       sorting: "price", direct: "false", currency: "eur", limit: "1000", page: "1",
     });
     try {

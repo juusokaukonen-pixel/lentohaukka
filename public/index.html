@@ -116,8 +116,8 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
 .gp b{color:var(--ink)}
 .gp a{color:var(--ink)}
 .gtag{font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;border:1px solid var(--line);color:var(--ink)}
-.leafchip{display:inline-flex;align-items:center;gap:8px;text-align:left}
-.leaf{width:22px;height:22px;flex:none;color:#3f8f4a}
+.leafchip{display:inline-grid;place-items:center;padding:6px;border-radius:12px;width:60px;height:60px}
+.leaf{width:46px;height:46px;flex:none;color:#3f8f4a}
 .leafchip[aria-pressed="true"]{background:#2f7a3b;border-color:#2f7a3b;color:#fff}
 .leafchip[aria-pressed="true"] .leaf{color:#fff}
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:6px;font-weight:600;font-size:.9rem}
@@ -208,7 +208,7 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
     <div>
       <span class="lbl">Kohdemaa</span>
       <div class="chips">
-        <button type="button" class="chip leafchip" id="c-canna" aria-pressed="false"><svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><ellipse cx="12" cy="14.9" rx="1.15" ry="2.1" transform="rotate(-78 12 17)"/><ellipse cx="12" cy="13.8" rx="1.45" ry="3.2" transform="rotate(-52 12 17)"/><ellipse cx="12" cy="12.8" rx="1.45" ry="4.2" transform="rotate(-26 12 17)"/><ellipse cx="12" cy="12.2" rx="1.45" ry="4.8" transform="rotate(0 12 17)"/><ellipse cx="12" cy="12.8" rx="1.45" ry="4.2" transform="rotate(26 12 17)"/><ellipse cx="12" cy="13.8" rx="1.45" ry="3.2" transform="rotate(52 12 17)"/><ellipse cx="12" cy="14.9" rx="1.15" ry="2.1" transform="rotate(78 12 17)"/><rect x="11.4" y="16.5" width="1.2" height="6" rx=".6"/></g></svg>Kannabismyönteinen<small>laillista tai pienistä määristä ei rangaista</small></button>
+        <button type="button" class="chip leafchip" id="c-canna" aria-pressed="false" aria-label="Kannabismyönteinen kohdemaa" title="Kannabismyönteinen: laillista tai pienistä määristä ei rangaista"><svg class="leaf" viewBox="0 0 64 64" aria-hidden="true"><g fill="currentColor"><path d="M0 0 C3.4 -4.2 2.1 -11.7 0 -15 C-2.1 -11.7 -3.4 -4.2 0 0Z" transform="translate(32 40) rotate(-96)"/><path d="M0 0 C5 -6.7 3.1 -18.7 0 -24 C-3.1 -18.7 -5 -6.7 0 0Z" transform="translate(32 40) rotate(-64)"/><path d="M0 0 C6 -8.7 3.7 -24.2 0 -31 C-3.7 -24.2 -6 -8.7 0 0Z" transform="translate(32 40) rotate(-32)"/><path d="M0 0 C6.6 -9.8 4.1 -27.3 0 -35 C-4.1 -27.3 -6.6 -9.8 0 0Z" transform="translate(32 40) rotate(0)"/><path d="M0 0 C6 -8.7 3.7 -24.2 0 -31 C-3.7 -24.2 -6 -8.7 0 0Z" transform="translate(32 40) rotate(32)"/><path d="M0 0 C5 -6.7 3.1 -18.7 0 -24 C-3.1 -18.7 -5 -6.7 0 0Z" transform="translate(32 40) rotate(64)"/><path d="M0 0 C3.4 -4.2 2.1 -11.7 0 -15 C-2.1 -11.7 -3.4 -4.2 0 0Z" transform="translate(32 40) rotate(96)"/><path d="M31 40 Q30.5 52 28 61 L31 61 Q33 52 33 40Z"/></g></svg></button>
       </div>
     </div>
 
@@ -417,7 +417,8 @@ function clockOk(dep,ret,q){
 function liveOffer(o,d,m){const t=LIVE[o+"|"+m];return t?t[d]:undefined}
 const ALL3=[0,1,2],ALL5=[1,2,3,4,5];
 const PRICE_MAX=800,KM_MAX=12000;
-function norm(q){return {pl:ALL5,rain:ALL3,day:ALL3,night:ALL3,amOut:false,pmRet:false,canna:false,maxDirect:0,maxStop:0,minKm:0,...q}}
+function norm(q){const o={pl:[],rain:[],day:[],night:[],amOut:false,pmRet:false,canna:false,maxDirect:0,maxStop:0,minKm:0,...q};
+  if(!o.pl.length)o.pl=ALL5;if(!o.rain.length)o.rain=ALL3;if(!o.day.length)o.day=ALL3;if(!o.night.length)o.night=ALL3;return o}
 function climOk(d,mi,q){const c=CLIM[d][mi];return q.rain.includes(rainCat(c[2]))&&q.day.includes(dayCat(c[0]))&&q.night.includes(nightCat(c[1]))}
 function best(o,d,q){
   let b=null;
@@ -443,7 +444,7 @@ function best(o,d,q){
   return b;
 }
 const $=id=>document.getElementById(id);
-const S={origin:"HEL",month:"all",maxPrice:800,maxKm:12000,minKm:0,near:false,radius:250,pl:[1,2,3,4,5],rain:[0,1,2],day:[0,1,2],night:[0,1,2],maxDirect:0,maxStop:0,amOut:false,pmRet:false,canna:false};
+const S={origin:"HEL",month:"all",maxPrice:800,maxKm:12000,minKm:0,near:false,radius:250,pl:[],rain:[],day:[],night:[],maxDirect:0,maxStop:0,amOut:false,pmRet:false,canna:false};
 
 $("origin").innerHTML=Object.entries(ORIGINS).map(([c,v])=>`<option value="${c}">${v[0]} (${c})</option>`).join("");
 $("month").innerHTML=`<option value="all">Joustava: halvin kuukausi</option>`+MONTHS.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
@@ -481,7 +482,7 @@ document.querySelectorAll(".chips[data-k]").forEach(box=>{
   box.innerHTML=CHIPS[k].map(([v,l,s])=>`<button type="button" class="chip" id="c-${k}-${v}" data-v="${v}">${l}${s?`<small>${s}</small>`:""}</button>`).join("");
   box.addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const v=+b.dataset.v;
     const arr=S[k];S[k]=arr.includes(v)?arr.filter(x=>x!==v):[...arr,v].sort();
-    if(!S[k].length)S[k]=CHIPS[k].map(c=>c[0]);render()});
+    render()});
 });
 const dfmtISO=t=>t&&t.length>=10?`${+t.slice(8,10)}.${+t.slice(5,7)}.`:"";
 const tISO=t=>t&&t.length>=16?` klo ${t.slice(11,13)}.${t.slice(14,16)}`:"";
@@ -533,7 +534,7 @@ function describe(s){
   if(s.amOut)parts.push("meno klo 06–11");
   if(s.pmRet)parts.push("paluu klo 15–23");
   if(s.canna)parts.push("kannabismyönteinen");
-  const n=norm(s),lab=(k,arr)=>arr.length<CHIPS[k].length?arr.map(v=>CHIPS[k].find(c=>c[0]===v)[1].toLowerCase()).join("/"):null;
+  const n=s,lab=(k,arr)=>arr&&arr.length&&arr.length<CHIPS[k].length?arr.map(v=>CHIPS[k].find(c=>c[0]===v)[1].toLowerCase()).join("/"):null;
   if(s.maxDirect)parts.push("suora ≤ "+hm(s.maxDirect));
   if(s.maxStop)parts.push("1 välilasku ≤ "+hm(s.maxStop));
   const pl=lab("pl",n.pl);if(pl)parts.push("hintataso "+pl);

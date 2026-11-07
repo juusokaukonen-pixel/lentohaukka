@@ -3,15 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script nowprocket data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
-  (function () {
-      var script = document.createElement("script");
-      script.async = 1;
-      script.setAttribute("data-cmp-ab","2");
-      script.src = 'https://emrld.ltd/NTk2Njk3.js?t=596697';
-      document.head.appendChild(script);
-  })();
-</script>
 <title>Lentohaukka</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -105,6 +96,13 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
 .demo.live{background:var(--deal-bg);color:var(--deal)}
 .book{grid-column:1/-1;justify-self:start;font-weight:600;font-size:.85rem;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--accent);padding-bottom:1px;margin-top:4px}
 .book:hover{border-color:var(--ink)}
+.foot{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;max-width:760px;margin:0 auto;padding-block:0 110px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:.8rem;color:var(--muted)}
+.wrap{padding-bottom:24px}
+.cookie{position:fixed;left:0;right:0;bottom:0;z-index:30;padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.cookie-in{max-width:720px;margin:0 auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.25);display:grid;gap:10px}
+.cookie-in p{margin:0;font-size:.88rem;line-height:1.5;color:var(--muted)}
+.cookie-btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.cookie-btns .btn{flex:1 1 180px}
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:6px;font-weight:600;font-size:.9rem}
 @media (max-width:480px){
   .ticket{grid-template-columns:1fr auto}
@@ -223,6 +221,14 @@ input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);b
 
   <h2>Seuratut haut</h2>
   <div class="list" id="watches"></div>
+</div>
+<footer class="foot"><span>Lentohaukka · hinnat Aviasales / Travelpayouts</span><button class="x" id="cookieOpen" type="button">Evästeasetukset</button></footer>
+<div class="cookie" id="cookie" role="dialog" aria-labelledby="cookieT" hidden>
+  <div class="cookie-in">
+    <strong id="cookieT">Evästeet</strong>
+    <p>Lentohaukka tallentaa seurantasi ja valintasi tähän selaimeen. Se on välttämätöntä, jotta sivu toimii. Jos hyväksyt kaikki, sivulle ladataan myös Travelpayoutsin kumppanievästeet. Ne seuraavat, kun siirryt varaamaan lentoa, ja niiden kautta Lentohaukka voi saada varauksesta provision. Lentojen hinta ei muutu. Voit muuttaa valintaa milloin tahansa sivun alareunan Evästeasetukset-linkistä.</p>
+    <div class="cookie-btns"><button class="btn ghost" id="cookieNo" type="button">Vain välttämättömät</button><button class="btn" id="cookieYes" type="button">Hyväksy kaikki</button></div>
+  </div>
 </div>
 <div class="livebar" id="liveBar"><span id="liveTxt"></span><button class="btn" id="liveGo" type="button">Näytä tulokset ↓</button></div>
 
@@ -539,6 +545,20 @@ $("origin").addEventListener("change",e=>{S.origin=e.target.value;render()});
 $("month").addEventListener("change",e=>{S.month=e.target.value;render()});
 $("depOne").addEventListener("click",()=>{S.near=false;render()});
 $("depNear").addEventListener("click",()=>{S.near=true;render()});
+/* Evästeet: Travelpayouts Drive ladataan vain suostumuksella */
+const CK="lentohaukka-consent";
+function getConsent(){try{return localStorage.getItem(CK)}catch(e){return null}}
+function setConsent(v){try{localStorage.setItem(CK,v)}catch(e){}}
+function loadDrive(){
+  if(document.getElementById("tp-drive"))return;
+  const sc=document.createElement("script");sc.id="tp-drive";sc.async=true;sc.setAttribute("data-cmp-ab","2");
+  sc.src="https://emrld.ltd/NTk2Njk3.js?t=596697";document.head.appendChild(sc);
+}
+function showCookie(v){$("cookie").hidden=!v;$("liveBar").style.visibility=v?"hidden":""}
+$("cookieYes").addEventListener("click",()=>{setConsent("all");showCookie(false);loadDrive();toast("Kaikki evästeet hyväksytty")});
+$("cookieNo").addEventListener("click",()=>{const had=document.getElementById("tp-drive");setConsent("necessary");showCookie(false);if(had)location.reload();else toast("Vain välttämättömät evästeet käytössä")});
+$("cookieOpen").addEventListener("click",()=>showCookie(true));
+const c0=getConsent();if(c0==="all")loadDrive();else if(!c0)showCookie(true);
 render();renderWatches();
 })();
 </script>

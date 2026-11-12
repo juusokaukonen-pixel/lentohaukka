@@ -2,7 +2,7 @@
 // Token ja Partner ID luetaan Netlifyn ympäristömuuttujista TP_TOKEN ja TP_MARKER.
 // Kutsu: /api/prices?origins=HEL,TLL&months=2026-12,2027-01
 
-const API = "https://api.travelpayouts.com/aviasales/v3/prices_for_dates";
+import { fetchOffers } from "../lib/tp.mjs";
 
 export default async (req) => {
   const url = new URL(req.url);
@@ -25,24 +25,8 @@ export default async (req) => {
   const offers = {};
   const errors = [];
   await Promise.all(jobs.map(async ([o, m]) => {
-    const qs = new URLSearchParams({
-      origin: o, departure_at: m, one_way: oneWay ? "true" : "false", unique: "false",
-      sorting: "price", direct: "false", currency: "eur", limit: "1000", page: "1",
-    });
     try {
-      const r = await fetch(`${API}?${qs}`, { headers: { "X-Access-Token": token, "Accept-Encoding": "gzip" } });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      if (!j.success || !Array.isArray(j.data)) throw new Error("ei dataa");
-      offers[`${o}|${m}`] = j.data.map((x) => {
-        let link = x.link ? `https://www.aviasales.com${x.link}` : null;
-        if (link && marker) link += (link.includes("?") ? "&" : "?") + "marker=" + encodeURIComponent(marker);
-        return {
-          d: x.destination, a: x.destination_airport, p: x.price,
-          tr: x.transfers, dur: x.duration_to, dep: x.departure_at, ret: x.return_at,
-          al: x.airline, link,
-        };
-      });
+      offers[`${o}|${m}`] = await fetchOffers(o, m, { oneWay, token, marker });
     } catch (e) {
       errors.push(`${o}|${m}: ${e.message}`);
     }
